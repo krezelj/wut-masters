@@ -1,0 +1,1 @@
+Repository for a Master's Thesis at Warsaw University of Technology
