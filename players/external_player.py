@@ -37,6 +37,7 @@ class ExternalPlayer(BasePlayer):
         
         self.process.stdin.write(str(game) + "\n")
         self.process.stdin.flush()
-        move = int(self.process.stdout.readline())
-
+        move_index = int(self.process.stdout.readline())
+        move = game.get_move_from_index(move_index)
+        
         return move
