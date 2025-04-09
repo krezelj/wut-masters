@@ -27,6 +27,9 @@ class OthelloMove(BaseMove):
             for i, j in line:
                 self.flip_mask[i, j] = True
 
+    def __str__(self):
+        return self.algebraic
+
 
 class Othello:
 
@@ -74,12 +77,10 @@ class Othello:
 
     def __get_captures_from_position(self, i: int, j: int) -> list[Positions]:
         captures = []
-        has_opponent_token = lambda i, j: self.opponent_board[i, j]
-
         directions = get_neighbor_diffs(i, j, self.shape)
         for di, dj in directions:
             position = (i + di, j + dj)
-            if has_opponent_token[*position]:
+            if not self.opponent_board[position]:
                 continue
 
             capture = [position]
@@ -108,7 +109,7 @@ class Othello:
             moves.append(OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape))
 
         if len(moves) == 0:
-            moves.append(OthelloMove(None, captures, self.black_to_move, self.null_moves, self.shape))
+            moves.append(OthelloMove(None, [], self.black_to_move, self.null_moves, self.shape))
 
         return moves
 
@@ -116,6 +117,8 @@ class Othello:
         return np.random.choice(self.get_moves())
 
     def get_move_from_index(self, index: int) -> OthelloMove:
+        if index < 0:
+            return OthelloMove(None, [], self.black_to_move, self.null_moves, self.shape)
         i = index // self.size
         j = index % self.size
         captures = self.__get_captures_from_position(i, j)
@@ -184,12 +187,12 @@ class Othello:
             for j in range(self.size):
                 if self.board[0, i, j]:
                     s += 'X'
-                elif self.board[0, i, j]:
+                elif self.board[1, i, j]:
                     s += 'O'
                 else:
                     s += '.'
-        s += self.player_idx
-        s += self.null_moves
+        s += str(self.player_idx)
+        s += str(self.null_moves)
         return s
 
 
