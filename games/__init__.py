@@ -1,3 +1,3 @@
-from othello import Othello
+from games.othello import Othello
 
 __all__ = ['Othello']
