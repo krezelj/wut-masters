@@ -18,5 +18,8 @@ class BaseGame(ABC):
     def get_random_move(self) -> BaseMove:
         pass
 
+    def get_move_from_index(self, index: int) -> BaseMove:
+        pass
+
     def evaluate(self) -> float:
         pass

@@ -17,13 +17,13 @@ class OthelloMove(BaseMove):
             return np.prod(self.board_shape)
         return self.position[0] * self.board_shape[0] + self.position[1]
 
-    def __init__(self, position, capture_lines, black_to_move, null_moves, board_shape):
+    def __init__(self, position, captures, black_to_move, null_moves, board_shape):
         self.position = position
         self.black_to_move = black_to_move
         self.null_moves = null_moves
         self.board_shape = board_shape
         self.flip_mask = np.zeros(shape=board_shape, dtype=np.bool)
-        for line in capture_lines:
+        for line in captures:
             for i, j in line:
                 self.flip_mask[i, j] = True
 
@@ -35,11 +35,11 @@ class Othello:
         return 0 if self.black_to_move else 1
     
     @property
-    def player_tokens(self):
+    def player_board(self):
         return self.board[self.player_idx, :, :]
         
     @property
-    def opponent_tokens(self):
+    def opponent_board(self):
         return self.board[1 - self.player_idx, :, :]
     
     @property
@@ -72,50 +72,61 @@ class Othello:
         self.black_to_move = True
         self.null_moves = 0
 
+    def __get_captures_from_position(self, i: int, j: int) -> list[Positions]:
+        captures = []
+        has_opponent_token = lambda i, j: self.opponent_board[i, j]
+
+        directions = get_neighbor_diffs(i, j, self.shape)
+        for di, dj in directions:
+            position = (i + di, j + dj)
+            if has_opponent_token[*position]:
+                continue
+
+            capture = [position]
+            while True:
+                position = (position[0] + di, position[1] + dj)
+
+                if not is_in_limits(*position, self.shape):
+                    break
+                if not self.opponent_board[position]:
+                    break
+
+                capture.append(position)                    
+            
+            if is_in_limits(*position, self.shape) and self.player_board[position]:
+                captures.append(capture)
+
+        return captures
+
     def get_moves(self) -> list[OthelloMove]:
         moves = []
 
         for i, j in self.empty_positions:
-            capture_lines = []
-
-            has_opponent_token = lambda i, j: self.opponent_tokens[i, j]
-            directions = get_neighbor_diffs(i, j, self.shape)
-
-            for di, dj in directions:
-                position = (i + di, j + dj)
-                if has_opponent_token[*position]:
-                    continue
-
-                capture_line = [position]
-                while True:
-                    position = (position[0] + di, position[1] + dj)
-
-                    if not is_in_limits(*position, self.shape):
-                        break
-                    if not self.opponent_tokens[position]:
-                        break
-
-                    capture_line.append(position)                    
-                
-                if is_in_limits(*position, self.shape) and self.player_tokens[position]:
-                    capture_lines.append(capture_line)
-            
-            if len(capture_lines) == 0:
+            captures = self.__get_captures_from_position(i, j)
+            if len(captures) == 0:
                 continue
-
-            moves.append(OthelloMove((i, j), capture_lines, self.black_to_move, self.null_moves, self.shape))
+            moves.append(OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape))
 
         if len(moves) == 0:
-            moves.append(OthelloMove(None, capture_lines, self.black_to_move, self.null_moves, self.shape))
+            moves.append(OthelloMove(None, captures, self.black_to_move, self.null_moves, self.shape))
 
         return moves
+
+    def get_random_move(self) -> OthelloMove:
+        return np.random.choice(self.get_moves())
+
+    def get_move_from_index(self, index: int) -> OthelloMove:
+        i = index // self.size
+        j = index % self.size
+        captures = self.__get_captures_from_position(i, j)
+        return OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape)
 
     def make_move(self, move: OthelloMove):
         if move.position is not None:
             assert(move.black_to_move == self.black_to_move)
-            self.player_tokens[move.position] = True
-            self.player_tokens[move.flip_mask] = True
-            self.opponent_tokens[move.flip_mask] = False
+            self.player_board[move.position] = True
+            self.player_board[move.flip_mask] = True
+            self.opponent_board[move.flip_mask] = False
             self.null_moves = 0
         else:
             self.null_moves += 1
@@ -124,9 +135,9 @@ class Othello:
     def undo_move(self, move: OthelloMove):
         if move.position is not None:
             assert(move.black_to_move != self.black_to_move)
-            self.opponent_tokens[move.position] = False
-            self.opponent_tokens[move.flip_mask] = False
-            self.player_tokens[move.flip_mask] = True
+            self.opponent_board[move.position] = False
+            self.opponent_board[move.flip_mask] = False
+            self.player_board[move.flip_mask] = True
             self.null_moves = move.null_moves
         else:
             self.null_moves -= 1
@@ -166,6 +177,21 @@ class Othello:
         new_game.board = np.copy(self.board)
         new_game.black_to_move = self.black_to_move
         new_game.null_moves = self.null_moves
+
+    def __str__(self):
+        s = ""
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[0, i, j]:
+                    s += 'X'
+                elif self.board[0, i, j]:
+                    s += 'O'
+                else:
+                    s += '.'
+        s += self.player_idx
+        s += self.null_moves
+        return s
+
 
 if __name__ == '__main__':
     pass
