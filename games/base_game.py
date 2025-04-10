@@ -21,5 +21,11 @@ class BaseGame(ABC):
     def get_move_from_index(self, index: int) -> BaseMove:
         pass
 
+    def make_move(self, move):
+        pass
+
+    def undo_move(self, move):
+        pass
+
     def evaluate(self) -> float:
         pass
