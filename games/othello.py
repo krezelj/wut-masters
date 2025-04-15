@@ -1,6 +1,6 @@
 import numpy as np
 
-from games.base_game import BaseMove
+from games.base_game import BaseGame, BaseMove
 from games.utils import *
 
 class OthelloMove(BaseMove):
@@ -31,7 +31,7 @@ class OthelloMove(BaseMove):
         return self.algebraic
 
 
-class Othello:
+class Othello(BaseGame):
 
     @property
     def player_idx(self):
@@ -52,6 +52,16 @@ class Othello:
     @property
     def is_over(self):
         return len(list(self.empty_positions)) == 0 or self.null_moves >= 2
+    
+    @property
+    def result(self):
+        if not self.is_over:
+            return None
+        if self.material_diff > 0:
+            return 0 # black idx
+        if self.material_diff < 0:
+            return 1 # white idx
+        return -1 # draw
     
     @property
     def material_diff(self):
@@ -114,6 +124,8 @@ class Othello:
         return moves
 
     def get_random_move(self) -> OthelloMove:
+        # TODO use seeded _rng
+        # raise NotImplementedError()
         return np.random.choice(self.get_moves())
 
     def get_move_from_index(self, index: int) -> OthelloMove:
@@ -175,11 +187,15 @@ class Othello:
 
             print("")
 
-    def copy(self):
+    def copy(self) -> 'Othello':
         new_game = Othello(self.size)
         new_game.board = np.copy(self.board)
         new_game.black_to_move = self.black_to_move
         new_game.null_moves = self.null_moves
+        return new_game
+
+    # def swap_players(self):
+    #     self.black_to_move = not self.black_to_move
 
     def __str__(self):
         s = ""

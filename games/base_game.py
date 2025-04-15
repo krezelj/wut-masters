@@ -9,23 +9,34 @@ class BaseMove(ABC):
 
 class BaseGame(ABC):
 
+    __slots__ = ['player_idx', 'is_over', 'result']
+
     def __init__(self):
         super().__init__()
     
     def get_moves(self) -> list[BaseMove]:
-        pass
+        raise NotImplementedError()
 
     def get_random_move(self) -> BaseMove:
-        pass
+        raise NotImplementedError()
 
     def get_move_from_index(self, index: int) -> BaseMove:
-        pass
+        raise NotImplementedError()
 
     def make_move(self, move):
-        pass
+        raise NotImplementedError()
 
     def undo_move(self, move):
-        pass
+        raise NotImplementedError()
 
     def evaluate(self) -> float:
-        pass
+        raise NotImplementedError()
+
+    def copy(self) -> 'BaseGame':
+        raise NotImplementedError()
+    
+    def render(self):
+        raise NotImplementedError()
+
+    def swap_players(self):
+        raise NotImplementedError()
