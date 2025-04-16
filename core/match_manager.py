@@ -31,9 +31,11 @@ class MatchManager:
                  n_games: int = 1,
                  mirror_games: bool = False,
                  n_random_moves: int = 0,
-                 seed: int = 0):
+                 seed: int = 0,
+                 verbose: int = 0):
         
         self.status = STARTING
+        self.verbose = verbose
         self.players = players
         self.current_player_idx = 0
         self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
@@ -69,7 +71,8 @@ class MatchManager:
                 # TODO log current game status (who won, how many moves etc.)
                 self.games_completed += 1
                 self.__update_stats()
-                self.__print_stats()
+                if self.verbose > 0:
+                    self.__print_stats()
                 self.current_game = None
 
     def __run_game(self):
