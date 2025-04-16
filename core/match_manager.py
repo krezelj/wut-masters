@@ -7,23 +7,24 @@ from core.game_generator import GameGenerator
 from games.base_game import BaseGame, BaseMove
 from players.base_player import BasePlayer
 
-
-# status enums
-STARTING = 0    #
-READY = 1       # ready to start
-RUNNING = 2     # currently running
-WAITING = 3     # waiting for a response
-RESUMING = 4    # got response, but not yet running
-OVER = -1        # all games have finished 
-
-
 class MatchManager:
 
-    # __slots__ = ['current_player_idx']
+    # status enums
+    STARTING = 0    #
+    READY = 1       # ready to start
+    RUNNING = 2     # currently running
+    WAITING = 3     # waiting for a response
+    RESUMING = 4    # got response, but not yet running
+    PAUSED = 5      # paused after a game has finished
+    OVER = -1       # all games have finished 
 
     @property
     def current_player(self):
         return self.players[self.current_player_idx]
+    
+    @property
+    def draw_result(self):
+        return self.current_game.n_possible_outcomes - 1
 
     def __init__(self, 
                  players: list[Optional[BasePlayer]],
@@ -31,33 +32,39 @@ class MatchManager:
                  n_games: int = 1,
                  mirror_games: bool = False,
                  n_random_moves: int = 0,
+                 pause_after_game: bool = False,
                  seed: int = 0,
                  verbose: int = 0):
         
-        self.status = STARTING
+        self.status = self.STARTING
+
         self.verbose = verbose
+        self.pause_after_game = pause_after_game
         self.players = players
-        self.current_player_idx = 0
-        self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
+
         self.current_game: Optional[BaseGame] = None
         self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
+        self.last_winner_idx : Optional[int] = None
         self.games_completed = 0
-        self.status = READY
+
+        self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
+
+        self.status = self.READY
 
     def run(self) -> Optional[BaseGame]:
-        if self.status == WAITING:
+        if self.status == self.WAITING:
             raise RuntimeError("run method was called while the MatchManager is WAITING")
-        if self.status == READY:
-            self.status = RUNNING
+        if self.status in [self.READY, self.PAUSED]:
+            self.status = self.RUNNING
     
-        while self.status != OVER:
+        while self.status != self.OVER:
 
             if self.current_game is None:
                 self.current_game, is_mirrored = self.game_generator.get_next_game()
                 self.current_player_idx = 0
 
                 if self.current_game is None:
-                    self.status = OVER
+                    self.status = self.OVER
                     break
                 elif is_mirrored:
                     self.__advance_players()
@@ -65,7 +72,7 @@ class MatchManager:
 
             self.__run_game()
 
-            if self.status == WAITING:
+            if self.status == self.WAITING:
                 return self.current_game
             else:
                 # TODO log current game status (who won, how many moves etc.)
@@ -74,16 +81,19 @@ class MatchManager:
                 if self.verbose > 0:
                     self.__print_stats()
                 self.current_game = None
+            if self.pause_after_game:
+                self.status = self.PAUSED
+                return
 
     def __run_game(self):
         while not self.current_game.is_over:
             move = None
-            if self.current_player is None and self.status == RUNNING:
-                self.status = WAITING
+            if self.current_player is None and self.status == self.RUNNING:
+                self.status = self.WAITING
                 return
-            elif self.current_player is None and self.status == RESUMING:
+            elif self.current_player is None and self.status == self.RESUMING:
                 move = self.response_move
-                self.status = RUNNING
+                self.status = self.RUNNING
             else:
                 move = self.current_player.get_move(self.current_game)
 
@@ -99,18 +109,18 @@ class MatchManager:
 
     def respond(self, move: BaseMove):
         self.response_move = move
-        self.status = RESUMING
+        self.status = self.RESUMING
 
     def __update_stats(self):
         result = self.current_game.result
+        if result == self.draw_result:
+            self.last_winner_idx = -1
+        else:
+            self.last_winner_idx = (self.first_player_idx - result) % len(self.players)
         self.results[result, self.first_player_idx] += 1
 
     def __print_stats(self):
         # from the perspective of the player with index 0
-        # wins = np.sum(np.array(self.results) == 0)
-        # losses = np.sum(np.array(self.results) == 1)
-        # draws = np.sum(np.array(self.results) == -1)
-
         non_draws = self.results[:-1, :]
         wins = non_draws.diagonal().sum().astype(np.int32)
         losses = np.sum(non_draws).astype(np.int32) - wins
