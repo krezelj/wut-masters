@@ -40,8 +40,8 @@ class MatchManager:
         self.current_player_idx = 0
         self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
         self.current_game: Optional[BaseGame] = None
-        self.wins: list = []
-        self.games_completed: int = 0
+        self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
+        self.games_completed = 0
         self.status = READY
 
     def run(self) -> Optional[BaseGame]:
@@ -103,15 +103,17 @@ class MatchManager:
 
     def __update_stats(self):
         result = self.current_game.result
-        if result < 0:
-            self.wins.append(result)
-        else:
-            # TODO check how it scales for more than two players
-            self.wins.append(abs(result - self.first_player_idx))
+        self.results[result, self.first_player_idx] += 1
 
     def __print_stats(self):
-        # from the perspective of the first player
-        wins = np.sum(np.array(self.wins) == 0)
-        losses = np.sum(np.array(self.wins) == 1)
-        draws = np.sum(np.array(self.wins) == -1)
-        print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses} |")
+        # from the perspective of the player with index 0
+        # wins = np.sum(np.array(self.results) == 0)
+        # losses = np.sum(np.array(self.results) == 1)
+        # draws = np.sum(np.array(self.results) == -1)
+
+        non_draws = self.results[:-1, :]
+        wins = non_draws.diagonal().sum().astype(np.int32)
+        losses = np.sum(non_draws).astype(np.int32) - wins
+        draws = np.sum(self.results[-1, :]).astype(np.int32)
+
+        print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses}")

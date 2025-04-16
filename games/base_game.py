@@ -9,7 +9,7 @@ class BaseMove(ABC):
 
 class BaseGame(ABC):
 
-    __slots__ = ['player_idx', 'is_over', 'result']
+    __slots__ = ['player_idx', 'is_over', 'result', 'n_possible_outcomes']
 
     def __init__(self):
         super().__init__()

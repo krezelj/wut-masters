@@ -33,6 +33,8 @@ class OthelloMove(BaseMove):
 
 class Othello(BaseGame):
 
+    n_possible_outcomes = 3
+
     @property
     def player_idx(self):
         return 0 if self.black_to_move else 1
@@ -61,7 +63,7 @@ class Othello(BaseGame):
             return 0 # black idx
         if self.material_diff < 0:
             return 1 # white idx
-        return -1 # draw
+        return 2 # draw
     
     @property
     def material_diff(self):
