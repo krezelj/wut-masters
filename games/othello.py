@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 
 from games.base_game import BaseGame, BaseMove
 from games.utils import *
@@ -17,7 +18,12 @@ class OthelloMove(BaseMove):
             return np.prod(self.board_shape)
         return self.position[0] * self.board_shape[0] + self.position[1]
 
-    def __init__(self, position, captures, black_to_move, null_moves, board_shape):
+    def __init__(self, 
+                 position: tuple[int, int], 
+                 captures: list[tuple[int, int]], 
+                 black_to_move: bool, 
+                 null_moves: int, 
+                 board_shape: tuple[int, int]):
         self.position = position
         self.black_to_move = black_to_move
         self.null_moves = null_moves
@@ -26,6 +32,10 @@ class OthelloMove(BaseMove):
         for line in captures:
             for i, j in line:
                 self.flip_mask[i, j] = True
+
+    @classmethod
+    def get_null_move(cls, game: 'Othello') -> 'OthelloMove':
+        return OthelloMove(None, [], game.black_to_move, game.null_moves, game.shape)
 
     def __str__(self):
         return self.algebraic
@@ -87,6 +97,9 @@ class Othello(BaseGame):
         self.black_to_move = True
         self.null_moves = 0
 
+        self.obs_shape = self.board.shape
+        self.n_actions = size * size + 1
+
     def __get_captures_from_position(self, i: int, j: int) -> list[Positions]:
         captures = []
         directions = get_neighbor_diffs(i, j, self.shape)
@@ -121,14 +134,14 @@ class Othello(BaseGame):
             moves.append(OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape))
 
         if len(moves) == 0:
-            moves.append(OthelloMove(None, [], self.black_to_move, self.null_moves, self.shape))
+            moves.append(OthelloMove.get_null_move(self))
 
         return moves
 
     def get_random_move(self) -> OthelloMove:
         # TODO use seeded _rng
-        # raise NotImplementedError()
-        return np.random.choice(self.get_moves())
+        raise NotImplementedError()
+        # return np.random.choice(self.get_moves())
 
     def get_move_from_index(self, index: int) -> OthelloMove:
         if index < 0:
@@ -141,6 +154,7 @@ class Othello(BaseGame):
     def make_move(self, move: OthelloMove):
         if move.position is not None:
             assert(move.black_to_move == self.black_to_move)
+            assert(not np.any(self.board[:, move.position]))
             self.player_board[move.position] = True
             self.player_board[move.flip_mask] = True
             self.opponent_board[move.flip_mask] = False
@@ -167,7 +181,7 @@ class Othello(BaseGame):
         
         return value / np.prod(self.shape)
 
-    def render(self, show_legal_moves=False):
+    def render(self, show_legal_moves: bool=False):
         if show_legal_moves:
             moves = [move.position for move in self.get_moves()]
 
@@ -195,9 +209,25 @@ class Othello(BaseGame):
         new_game.black_to_move = self.black_to_move
         new_game.null_moves = self.null_moves
         return new_game
+    
+    def get_obs(self) -> npt.NDArray:
+        # always return from the perspective of the current player
+        return np.stack([
+            self.board[self.player_idx, :, :], 
+            self.board[1 - self.player_idx, :, :]])
+    
+    def action_masks(self):
+        mask = [False] * (self.size ** 2 + 1)
+        for move in self.get_moves():
+            mask[move.index] = True
+        mask[-1] = not np.any(mask[:-1])
+        return mask
 
-    # def swap_players(self):
-    #     self.black_to_move = not self.black_to_move
+    def get_move_from_action(self, action: int):
+        if action == self.n_actions - 1:
+            return OthelloMove.get_null_move(self)
+        move = next(filter(lambda move: move.index == action, self.get_moves()))
+        return move
 
     def __str__(self):
         s = ""

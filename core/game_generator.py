@@ -24,7 +24,8 @@ class GameGenerator:
         self.last_game: Optional[BaseGame] = None
 
     def get_next_game(self) -> tuple[Optional[BaseGame], bool]:
-        if self.n_games_generated >= self.n_games:
+        # == and not >= to allow -1 to mean infinity
+        if self.n_games_generated == self.n_games:
             return None, False
 
         if self.mirror_games and self.last_game is not None:

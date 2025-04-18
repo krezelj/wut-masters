@@ -51,7 +51,7 @@ class MatchManager:
 
         self.status = self.READY
 
-    def run(self) -> Optional[BaseGame]:
+    def run(self):
         if self.status == self.WAITING:
             raise RuntimeError("run method was called while the MatchManager is WAITING")
         if self.status in [self.READY, self.PAUSED]:
@@ -73,7 +73,8 @@ class MatchManager:
             self.__run_game()
 
             if self.status == self.WAITING:
-                return self.current_game
+                return
+                # return self.current_game
             else:
                 # TODO log current game status (who won, how many moves etc.)
                 self.games_completed += 1
