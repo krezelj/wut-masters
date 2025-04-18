@@ -7,5 +7,5 @@ class BasePlayer(ABC):
     def __init__(self):
         super().__init__()
 
-    def get_move(game: BaseGame) -> int:
-        pass
+    def get_move(self, game: BaseGame) -> int:
+        raise NotImplementedError()
