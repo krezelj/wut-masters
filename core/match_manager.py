@@ -10,12 +10,10 @@ from players.base_player import BasePlayer
 class MatchManager:
 
     # status enums
-    STARTING = 0    #
-    READY = 1       # ready to start
-    RUNNING = 2     # currently running
-    WAITING = 3     # waiting for a response
-    RESUMING = 4    # got response, but not yet running
-    PAUSED = 5      # paused after a game has finished
+    READY = 1       # ready to start the next game
+    RUNNING = 2     # currently running a game
+    WAITING = 3     # waiting for a response mid game
+    RESUMING = 4    # got response, but not yet running a game
     OVER = -1       # all games have finished 
 
     @property
@@ -36,8 +34,6 @@ class MatchManager:
                  seed: int = 0,
                  verbose: int = 0):
         
-        self.status = self.STARTING
-
         self.verbose = verbose
         self.pause_after_game = pause_after_game
         self.players = players
@@ -54,8 +50,9 @@ class MatchManager:
     def run(self):
         if self.status == self.WAITING:
             raise RuntimeError("run method was called while the MatchManager is WAITING")
-        if self.status in [self.READY, self.PAUSED]:
+        if self.status == self.READY:
             self.status = self.RUNNING
+            self.current_game = None
     
         while self.status != self.OVER:
 
@@ -74,16 +71,15 @@ class MatchManager:
 
             if self.status == self.WAITING:
                 return
-                # return self.current_game
             else:
                 # TODO log current game status (who won, how many moves etc.)
                 self.games_completed += 1
                 self.__update_stats()
                 if self.verbose > 0:
                     self.__print_stats()
-                self.current_game = None
+                # self.current_game = None
             if self.pause_after_game:
-                self.status = self.PAUSED
+                self.status = self.READY
                 return
 
     def __run_game(self):

@@ -44,6 +44,8 @@ class OthelloMove(BaseMove):
 class Othello(BaseGame):
 
     n_possible_outcomes = 3
+    n_actions = 65 # TODO GameEnv should handle this 
+    obs_shape = (2, 8, 8) # TODO GameEnv should handle this
 
     @property
     def player_idx(self):
@@ -181,7 +183,7 @@ class Othello(BaseGame):
         
         return value / np.prod(self.shape)
 
-    def render(self, show_legal_moves: bool=False):
+    def render(self, show_legal_moves: bool=True):
         if show_legal_moves:
             moves = [move.position for move in self.get_moves()]
 

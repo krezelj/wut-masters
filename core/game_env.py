@@ -28,7 +28,7 @@ class GameEnv(gym.Env):
 
         self.action_space = spaces.Discrete(game_type.n_actions)
         if obs_mode == "flat":
-            self.observation_space = spaces.Box(low=0, high=1, shape=np.prod(game_type.obs_shape), dtype=np.float32)
+            self.observation_space = spaces.Box(low=0, high=1, shape=(np.prod(game_type.obs_shape), ), dtype=np.float32)
         elif obs_mode == "image":
             self.observation_space = spaces.Box(low=0, high=255, shape=game_type.obs_shape, dtype=np.uint8)
 
@@ -52,7 +52,7 @@ class GameEnv(gym.Env):
 
         terminated = False
         reward = 0
-        if self.mm.status in [self.mm.OVER, self.mm.PAUSED]:
+        if self.mm.status in [self.mm.OVER, self.mm.READY]:
             reward = 1 if self.mm.last_winner_idx == 0 else -1
             terminated = True
 
@@ -63,7 +63,9 @@ class GameEnv(gym.Env):
         self.mm.current_game.get_obs()
 
     def _get_info(self) -> dict:
-        return {}
+        return {
+            'game': self.mm.current_game
+            }
 
     def render(self):
         self.mm.current_game.render()
