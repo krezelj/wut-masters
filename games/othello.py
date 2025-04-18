@@ -140,8 +140,8 @@ class Othello(BaseGame):
 
     def get_random_move(self) -> OthelloMove:
         # TODO use seeded _rng
-        raise NotImplementedError()
-        # return np.random.choice(self.get_moves())
+        # raise NotImplementedError()
+        return np.random.choice(self.get_moves())
 
     def get_move_from_index(self, index: int) -> OthelloMove:
         if index < 0:
@@ -154,7 +154,7 @@ class Othello(BaseGame):
     def make_move(self, move: OthelloMove):
         if move.position is not None:
             assert(move.black_to_move == self.black_to_move)
-            assert(not np.any(self.board[:, move.position]))
+            assert(not self.player_board[move.position] and not self.opponent_board[move.position])
             self.player_board[move.position] = True
             self.player_board[move.flip_mask] = True
             self.opponent_board[move.flip_mask] = False
@@ -213,8 +213,8 @@ class Othello(BaseGame):
     def get_obs(self) -> npt.NDArray:
         # always return from the perspective of the current player
         return np.stack([
-            self.board[self.player_idx, :, :], 
-            self.board[1 - self.player_idx, :, :]])
+            self.player_board, 
+            self.opponent_board])
     
     def action_masks(self):
         mask = [False] * (self.size ** 2 + 1)
