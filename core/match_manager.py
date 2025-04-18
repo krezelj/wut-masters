@@ -52,9 +52,10 @@ class MatchManager:
             raise RuntimeError("run method was called while the MatchManager is WAITING")
         if self.status == self.READY:
             self.status = self.RUNNING
-            self.current_game = None
     
         while self.status != self.OVER:
+            if self.status == self.RUNNING:
+                self.current_game = None
 
             if self.current_game is None:
                 self.current_game, is_mirrored = self.game_generator.get_next_game()
