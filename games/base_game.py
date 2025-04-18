@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Literal
 
 import numpy.typing as npt
 
@@ -11,8 +12,9 @@ class BaseMove(ABC):
 
 class BaseGame(ABC):
 
-    __slots__ = ['player_idx', 'is_over', 'result', 'n_possible_outcomes', 
-                 'obs_shape', 'n_actions']
+    __slots__ = ['player_idx', 'is_over', 'result', 
+                 'n_possible_outcomes', 'obs_shape', 'n_actions']
+    
 
     def __init__(self):
         super().__init__()
@@ -41,7 +43,7 @@ class BaseGame(ABC):
     def render(self):
         raise NotImplementedError()
 
-    def get_obs(self) -> npt.NDArray:
+    def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         raise NotImplementedError()
     
     def action_masks(self) -> list[bool]:

@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
@@ -51,6 +52,10 @@ class Othello(BaseGame):
     def player_idx(self):
         return 0 if self.black_to_move else 1
     
+    @player_idx.setter
+    def player_idx(self, value): 
+        pass
+        
     @property
     def player_board(self):
         return self.board[self.player_idx, :, :]
@@ -67,6 +72,10 @@ class Othello(BaseGame):
     def is_over(self):
         return len(list(self.empty_positions)) == 0 or self.null_moves >= 2
     
+    @is_over.setter
+    def is_over(self, value):
+        pass
+    
     @property
     def result(self):
         if not self.is_over:
@@ -76,6 +85,10 @@ class Othello(BaseGame):
         if self.material_diff < 0:
             return 1 # white idx
         return 2 # draw
+    
+    @result.setter
+    def result(self, value):
+        pass
     
     @property
     def material_diff(self):
@@ -212,11 +225,12 @@ class Othello(BaseGame):
         new_game.null_moves = self.null_moves
         return new_game
     
-    def get_obs(self) -> npt.NDArray:
+    def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         # always return from the perspective of the current player
-        return np.stack([
-            self.player_board, 
-            self.opponent_board])
+        obs = np.stack([self.player_board, self.opponent_board]).astype(np.float32)
+        if obs_mode == "flat":
+            obs = obs.flatten()
+        return obs
     
     def action_masks(self):
         mask = [False] * (self.size ** 2 + 1)

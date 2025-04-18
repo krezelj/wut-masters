@@ -27,6 +27,7 @@ class GameEnv(gym.Env):
         self._rng = np.random.default_rng(seed=seed)
 
         self.action_space = spaces.Discrete(game_type.n_actions)
+        self.obs_mode = obs_mode
         if obs_mode == "flat":
             self.observation_space = spaces.Box(low=0, high=1, shape=(np.prod(game_type.obs_shape), ), dtype=np.float32)
         elif obs_mode == "image":
@@ -40,7 +41,7 @@ class GameEnv(gym.Env):
             pause_after_game=True,
             seed=seed)
 
-    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
+    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None) -> tuple[npt.NDArray, dict]:
         self.mm.run()
         return self._get_obs(), self._get_info()
 
@@ -60,7 +61,7 @@ class GameEnv(gym.Env):
         return self._get_obs(), reward, terminated, truncated, self._get_info()
 
     def _get_obs(self) -> npt.NDArray:
-        self.mm.current_game.get_obs()
+        return self.mm.current_game.get_obs(self.obs_mode)
 
     def _get_info(self) -> dict:
         return {
@@ -71,4 +72,4 @@ class GameEnv(gym.Env):
         self.mm.current_game.render()
 
     def action_masks(self) -> list[bool]:
-        self.mm.current_game.action_masks()
+        return self.mm.current_game.action_masks()
