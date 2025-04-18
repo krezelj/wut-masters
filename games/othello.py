@@ -232,18 +232,32 @@ class Othello(BaseGame):
             obs = obs.flatten()
         return obs
     
-    def action_masks(self):
+    def action_masks(self) -> list[bool]:
         mask = [False] * (self.size ** 2 + 1)
         for move in self.get_moves():
             mask[move.index] = True
         mask[-1] = not np.any(mask[:-1])
         return mask
 
-    def get_move_from_action(self, action: int):
+    def get_move_from_action(self, action: int) -> BaseMove:
         if action == self.n_actions - 1:
             return OthelloMove.get_null_move(self)
         move = next(filter(lambda move: move.index == action, self.get_moves()))
         return move
+
+    def get_move_from_user_input(self, user_input: str) -> BaseMove:
+        if len(user_input) != 2:
+            raise ValueError("Invalid move")
+        j = ord(user_input[0]) - ord('a')
+        i = int(user_input[1]) - 1
+        if not is_in_limits(i, j, self.shape):
+            raise ValueError("Invalid move")
+        try:
+            move = next(filter(lambda move: move.position == (i, j), self.get_moves()))
+        except:
+            raise ValueError("Invalid move")
+        return move
+
 
     def __str__(self):
         s = ""

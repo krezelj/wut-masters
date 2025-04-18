@@ -51,3 +51,6 @@ class BaseGame(ABC):
     
     def get_move_from_action(self, action: int) -> BaseMove:
         raise NotImplementedError()
+    
+    def get_move_from_user_input(self, user_input: str) -> BaseMove:
+        raise NotImplementedError()
