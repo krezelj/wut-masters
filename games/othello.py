@@ -101,13 +101,13 @@ class Othello(BaseGame):
         self.board = np.zeros(shape=(2, *self.shape), dtype=np.bool)
         center_idx = self.size // 2 - 1
 
-        # initial black tokens
-        self.board[0, center_idx, center_idx] = True
-        self.board[0, center_idx + 1, center_idx + 1] = True
-
         # initial white tokens
-        self.board[1, center_idx + 1, center_idx] = True
-        self.board[1, center_idx, center_idx + 1] = True
+        self.board[1, center_idx, center_idx] = True
+        self.board[1, center_idx + 1, center_idx + 1] = True
+
+        # initial black tokens
+        self.board[0, center_idx + 1, center_idx] = True
+        self.board[0, center_idx, center_idx + 1] = True
 
         self.black_to_move = True
         self.null_moves = 0
