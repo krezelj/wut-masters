@@ -22,7 +22,8 @@ class GameEnv(gym.Env):
                  opponent: BasePlayer, 
                  game_type: Type[BaseGame],
                  obs_mode = Literal["flat", "image"],
-                 seed: Optional[int] = None):
+                 seed: Optional[int] = None,
+                 **kwargs):
         super().__init__()
         self._rng = np.random.default_rng(seed=seed)
 
@@ -39,7 +40,8 @@ class GameEnv(gym.Env):
             n_games=-1,
             mirror_games=True,
             pause_after_game=True,
-            seed=seed)
+            seed=seed,
+            **kwargs)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None) -> tuple[npt.NDArray, dict]:
         self.mm.run()
