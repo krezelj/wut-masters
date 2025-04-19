@@ -227,10 +227,11 @@ class Othello(BaseGame):
     
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         # always return from the perspective of the current player
-        obs = np.stack([self.player_board, self.opponent_board]).astype(np.float32)
+        obs = np.stack([self.player_board, self.opponent_board])
         if obs_mode == "flat":
-            obs = obs.flatten()
-        return obs
+            return obs.flatten().astype(np.float32)
+        if obs_mode == "image":
+            return obs.astype(np.uint8) * 255
     
     def action_masks(self) -> list[bool]:
         mask = [False] * (self.size ** 2 + 1)
