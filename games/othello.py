@@ -167,6 +167,7 @@ class Othello(BaseGame):
         return OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape)
 
     def make_move(self, move: OthelloMove):
+        super().make_move(move)
         if move.position is not None:
             assert(move.black_to_move == self.black_to_move)
             assert(not self.player_board[move.position] and not self.opponent_board[move.position])
