@@ -163,6 +163,6 @@ class MatchManager:
         losses = np.sum(non_draws).astype(np.int32) - wins
         draws = np.sum(self.results[-1, :]).astype(np.int32)
 
-        msg = f"Game {self.games_completed:>5} finished, {self.current_player_name} won ({wins}-{draws}-{losses})"
+        msg = f"Game {self.games_completed:>5} finished ({wins}-{draws}-{losses})"
         logging.info(msg)
         # print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses}")
