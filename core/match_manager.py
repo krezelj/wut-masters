@@ -11,7 +11,7 @@ class MatchManager:
 
     # status enums
     READY = 1       # ready to start the next game
-    RUNNING = 2     # currently running a game
+    RUNNING = 2     # currently running games
     WAITING = 3     # waiting for a response mid game
     RESUMING = 4    # got response, but not yet running a game
     OVER = -1       # all games have finished 
@@ -58,30 +58,35 @@ class MatchManager:
                 self.current_game = None
 
             if self.current_game is None:
-                self.current_game, is_mirrored = self.game_generator.get_next_game()
-                self.current_player_idx = 0
+                self.__start_new_game()
 
-                if self.current_game is None:
-                    self.status = self.OVER
-                    break
-                elif is_mirrored:
-                    self.__advance_players()
-                self.first_player_idx = self.current_player_idx
-
+            if self.current_game is None:
+                self.status = self.OVER
+                return
+            
             self.__run_game()
 
             if self.status == self.WAITING:
                 return
             else:
-                # TODO log current game status (who won, how many moves etc.)
-                self.games_completed += 1
-                self.__update_stats()
-                if self.verbose > 0:
-                    self.__print_stats()
-                # self.current_game = None
+                self.__finish_game()
+
             if self.pause_after_game:
                 self.status = self.READY
                 return
+            
+    def respond(self, move: BaseMove):
+        self.response_move = move
+        self.status = self.RESUMING
+
+    def __start_new_game(self):
+        self.current_game, is_mirrored = self.game_generator.get_next_game()
+        self.current_player_idx = 0
+        if self.current_game is None:
+            return
+        elif is_mirrored:
+            self.__advance_players()
+        self.first_player_idx = self.current_player_idx
 
     def __run_game(self):
         while not self.current_game.is_over:
@@ -97,6 +102,12 @@ class MatchManager:
 
             self.__make_move(move)
 
+    def __finish_game(self):
+        self.games_completed += 1
+        self.__update_stats()
+        if self.verbose > 0:
+            self.__print_stats()
+
     def __make_move(self, move: BaseMove):
         # TODO log status and move
         self.current_game.make_move(move)
@@ -104,10 +115,6 @@ class MatchManager:
 
     def __advance_players(self):
         self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
-
-    def respond(self, move: BaseMove):
-        self.response_move = move
-        self.status = self.RESUMING
 
     def __update_stats(self):
         result = self.current_game.result
