@@ -1,6 +1,6 @@
 import time
+import logging
 from typing import Optional, Type
-import warnings
 
 import numpy as np
 
@@ -15,11 +15,22 @@ class MatchManager:
     RUNNING = 2     # currently running games
     WAITING = 3     # waiting for a response mid game
     RESUMING = 4    # got response, but not yet running a game
-    OVER = -1       # all games have finished 
+    OVER = -1       # all games have finished
+
+    # log levels
+    __BASE_GAME_LL = 1
+    __BASE_MOVE_LL = 2
+    __BASE_MOVE_STATE_LL = __BASE_MOVE_LL + 1
 
     @property
     def current_player(self):
         return self.players[self.current_player_idx]
+    
+    @property
+    def current_player_name(self):
+        if self.player_names is not None:
+            return self.player_names[self.current_player_idx]
+        return self.current_player_idx
     
     @property
     def draw_result(self):
@@ -27,7 +38,8 @@ class MatchManager:
 
     def __init__(self, 
                  players: list[Optional[BasePlayer]],
-                 game_type: Type[BaseGame], 
+                 game_type: Type[BaseGame],
+                 player_names: Optional[list[str]] = None,
                  n_games: int = 1,
                  mirror_games: bool = False,
                  n_random_moves: int = 0,
@@ -38,19 +50,22 @@ class MatchManager:
         self.verbose = verbose
         self.pause_after_game = pause_after_game
         self.players = players
+        self.player_names = player_names
 
         self.current_game: Optional[BaseGame] = None
         self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
         self.last_winner_idx : Optional[int] = None
         self.games_completed = 0
+        self.moves_made = 0
 
         self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
-
         self.status = self.READY
 
     def run(self):
         if self.status == self.WAITING:
-            raise RuntimeError("run method was called while the MatchManager is WAITING")
+            msg = "`run` method was called while the MatchManager is WAITING"
+            logging.error(msg)
+            raise RuntimeError(msg)
         if self.status == self.READY:
             self.status = self.RUNNING
     
@@ -82,6 +97,7 @@ class MatchManager:
 
     def __start_new_game(self):
         self.current_game, is_mirrored = self.game_generator.get_next_game()
+        self.moves_made = 0
         self.current_player_idx = 0
         if self.current_game is None:
             return
@@ -105,17 +121,19 @@ class MatchManager:
             else:
                 move = self.current_player.get_move(self.current_game)
 
-            elapsed_ms = (time.time() - t_start) * 1000
+            self.__elapsed_ms = (time.time() - t_start) * 1000
             self.__make_move(move)
 
     def __finish_game(self):
         self.games_completed += 1
         self.__update_stats()
-        if self.verbose > 0:
-            self.__print_stats()
+        if self.verbose >= self.__BASE_GAME_LL:
+            self.__log_game()
 
     def __make_move(self, move: BaseMove):
-        # TODO log status and move
+        if self.verbose >= self.__BASE_MOVE_LL:
+            self.__log_move(move)
+        self.moves_made += 1
         self.current_game.make_move(move)
         self.__advance_players()
 
@@ -130,11 +148,21 @@ class MatchManager:
             self.last_winner_idx = (self.first_player_idx - result) % len(self.players)
         self.results[result, self.first_player_idx] += 1
 
-    def __print_stats(self):
+    def __log_move(self, move: BaseMove):
+        msg = f"\nGame {self.games_completed}, player {self.current_player_name} made move no. {self.moves_made}\n"
+        if self.verbose >= self.__BASE_MOVE_STATE_LL:
+            msg += f"\tState: {str(self.current_game)}\n"
+        msg += f"\tMove: {str(move)}\n"
+        msg += f"\tTime: {self.__elapsed_ms:.2f}ms"
+        logging.info(msg)
+
+    def __log_game(self):
         # from the perspective of the player with index 0
         non_draws = self.results[:-1, :]
         wins = non_draws.diagonal().sum().astype(np.int32)
         losses = np.sum(non_draws).astype(np.int32) - wins
         draws = np.sum(self.results[-1, :]).astype(np.int32)
 
-        print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses}")
+        msg = f"Game {self.games_completed:>5} finished, {self.current_player_name} won ({wins}-{draws}-{losses})"
+        logging.info(msg)
+        # print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses}")
