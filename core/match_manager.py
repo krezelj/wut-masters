@@ -1,3 +1,4 @@
+import time
 from typing import Optional, Type
 import warnings
 
@@ -90,16 +91,21 @@ class MatchManager:
 
     def __run_game(self):
         while not self.current_game.is_over:
-            move = None
-            if self.current_player is None and self.status == self.RUNNING:
-                self.status = self.WAITING
-                return
-            elif self.current_player is None and self.status == self.RESUMING:
-                move = self.response_move
-                self.status = self.RUNNING
+            if self.status == self.RUNNING:
+                t_start = time.time()
+
+            # handle undefined player
+            if self.current_player is None:
+                if self.status == self.RUNNING:
+                    self.status = self.WAITING
+                    return
+                elif self.status == self.RESUMING:
+                    move = self.response_move
+                    self.status = self.RUNNING
             else:
                 move = self.current_player.get_move(self.current_game)
 
+            elapsed_ms = (time.time() - t_start) * 1000
             self.__make_move(move)
 
     def __finish_game(self):
