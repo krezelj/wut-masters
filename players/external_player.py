@@ -1,4 +1,5 @@
 import subprocess
+import logging
 from typing import Literal
 
 from games.base_game import BaseGame
@@ -10,10 +11,14 @@ class ExternalPlayer(BasePlayer):
 
     def __init__(self, 
                  game: Literal["othello", "connect_four"], 
-                 algorithm: Literal["minimax", "mcts"], 
+                 algorithm: Literal["minimax", "mcts"],
+                 log_debug: bool = False,
                  **kwargs):
         
+        self.log_debug = log_debug
         args = ["--game", game, "--algorithm", algorithm]
+        if self.log_debug:
+            args.append("--verbose")
         for k, v in kwargs.items():
             args.append(f'--{k}')
             args.append(f'{v}')
@@ -37,7 +42,14 @@ class ExternalPlayer(BasePlayer):
         
         self.process.stdin.write(str(game) + "\n")
         self.process.stdin.flush()
-        move_index = int(self.process.stdout.readline())
+
+        response = self.process.stdout.readline()
+        move_index_str, debug_msg = response.split(';')
+        move_index = int(move_index_str)
         move = game.get_move_from_index(move_index)
         
+        if self.log_debug:
+            # remove \n character
+            logging.debug(debug_msg[:-1])
+
         return move

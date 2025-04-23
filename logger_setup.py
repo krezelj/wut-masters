@@ -6,10 +6,12 @@ from typing import Optional
 def setup(
         logger_name: Optional[str] = None,
         filename: Optional[str] = "tmp.log", 
-        stream: bool = False):
+        stream: bool = False,
+        level: int = logging.DEBUG):
     
     logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.setLevel(level)
 
     if filename is not None:
         filename = f"./.logs/{filename}"
@@ -19,7 +21,7 @@ def setup(
             datefmt='%H:%M:%S',
         )
         file_handler = logging.FileHandler(filename, mode='w')
-        file_handler.setLevel(logging.INFO)
+        file_handler.setLevel(level)
         file_handler.setFormatter(file_formatter)
 
         logger.addHandler(file_handler)
@@ -27,7 +29,7 @@ def setup(
     if stream:
         stream_formatter = logging.Formatter('%(message)s')
         stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
+        stream_handler.setLevel(level)
         stream_handler.setFormatter(stream_formatter)
 
         logger.addHandler(stream_handler)
