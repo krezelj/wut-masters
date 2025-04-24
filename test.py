@@ -1,0 +1,27 @@
+import numpy as np
+
+from core.connection_manager import CMInstance
+from core.match_manager import MatchManager
+from games.external_othello import ExternalOthello
+from games.othello import Othello
+import logger_setup
+from players import ExternalPlayer
+from players.bogo_player import BogoPlayer
+from players.human_player import HumanPlayer
+from players.othello_heuristics import OthelloPositionalPlayer, OthelloMobilityPlayer
+
+logger_setup.setup(stream=False)
+
+# othello = ExternalOthello()
+minimax = ExternalPlayer(algorithm='minimax', depth=7, log_info=True)
+
+mm = MatchManager(
+    players=[minimax, minimax],
+    game_type=ExternalOthello,
+    n_games=50,
+    mirror_games=True,
+    n_random_moves=4,
+    seed=0,
+    verbose=3
+)
+mm.run()
