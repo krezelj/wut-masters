@@ -191,6 +191,8 @@ class Othello(BaseGame):
         self.black_to_move = not self.black_to_move
 
     def evaluate(self) -> float:
+        # TODO -- if needed, implement better evaluation function
+        raise NotImplementedError()
         value = self.material_diff * (1 if self.black_to_move else -1)
         if self.is_over:
             return np.sign(value)
