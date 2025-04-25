@@ -15,7 +15,7 @@ import logger_setup
 logger_setup.setup(filename='test_dir/test_log.log', stream=False)
 # logger_setup.setup(filename=None, stream=False)
 # # mcts = ExternalPlayer('othello', 'mcts', maxiters=200)
-minimax = ExternalPlayer(algorithm='minimax', depth = 3)
+minimax = ExternalPlayer(algorithm='minimax', depth = 7)
 # pos = OthelloPositionalPlayer()
 # bogo = BogoPlayer(0)
 # model_mlp = MaskablePPO.load('./models/test_agent_2')
