@@ -7,7 +7,7 @@ def setup(
         logger_name: Optional[str] = None,
         filename: Optional[str] = "tmp.log", 
         stream: bool = False,
-        level: int = logging.DEBUG):
+        level: int = logging.INFO):
     
     logger = logging.getLogger(logger_name)
     logger.handlers.clear()

@@ -12,12 +12,15 @@ class BaseMove(ABC):
 
 class BaseGame(ABC):
 
-    __slots__ = ['player_idx', 'is_over', 'result', 
+    __slots__ = ['hash_name', 'player_idx', 'is_over', 'result', 
                  'n_possible_outcomes', 'obs_shape', 'n_actions']
     
 
     def __init__(self):
         super().__init__()
+
+    def close(self):
+        pass # used to cleanup after the game has finished, but not required
     
     def get_moves(self) -> list[BaseMove]:
         raise NotImplementedError()
@@ -51,6 +54,9 @@ class BaseGame(ABC):
         raise NotImplementedError()
     
     def get_move_from_action(self, action: int) -> BaseMove:
+        raise NotImplementedError()
+    
+    def get_move_from_move_data(self, move_data: str) -> BaseMove:
         raise NotImplementedError()
     
     def get_move_from_user_input(self, user_input: str) -> BaseMove:
