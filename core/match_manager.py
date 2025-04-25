@@ -71,7 +71,7 @@ class MatchManager:
     
         while self.status != self.OVER:
             if self.status == self.RUNNING:
-                self.current_game = None
+                self.__prepare_for_next_game()
 
             if self.current_game is None:
                 self.__start_new_game()
@@ -123,6 +123,11 @@ class MatchManager:
 
             self.__elapsed_ms = (time.time() - self.t_start) * 1000
             self.__make_move(move)
+
+    def __prepare_for_next_game(self):
+        if self.current_game is not None:
+            self.current_game.close()
+        self.current_game = None
 
     def __finish_game(self):
         self.games_completed += 1

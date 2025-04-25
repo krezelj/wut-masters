@@ -28,6 +28,10 @@ class ExternalOthelloMove(BaseMove):
         # self.null_moves = int(self.move_data[1])
         # self.flip_mask = int(self.move_data[2])
 
+    @classmethod
+    def get_null_move(cls, game: 'ExternalOthello') -> 'ExternalOthelloMove':
+        return ExternalOthelloMove(f"-1,{game.null_moves},0")
+
     def __str__(self):
         # return self.algebraic
         # return f"{self.index},{self.null_moves},{self.flip_mask}"
@@ -57,10 +61,18 @@ class ExternalOthello(BaseGame):
     def player_idx(self):
         return int(self.state[-2])
     
+    @player_idx.setter
+    def player_idx(self, value):
+        pass
+    
     @property
     def is_over(self):
         is_full = '.' not in self.state
         return is_full or self.null_moves == 2
+    
+    @is_over.setter
+    def is_over(self, value):
+        pass
 
     @property
     def result(self):
@@ -71,6 +83,10 @@ class ExternalOthello(BaseGame):
         if self.material_diff < 0:
             return 1 # white idx
         return 2 # draw
+    
+    @result.setter
+    def result(self, value):
+        pass
 
     def __init__(self, hash_name: Optional[str] = None):
         if hash_name is None:
@@ -78,6 +94,9 @@ class ExternalOthello(BaseGame):
         else:
             self.hash_name = hash_name
         self.__state_cache = None
+
+    def close(self):
+        CMInstance.remove_game(self)
 
     def get_moves(self) -> list[ExternalOthelloMove]:
         moves_data = CMInstance.get_moves(self).split(';')
@@ -113,17 +132,41 @@ class ExternalOthello(BaseGame):
         return ExternalOthello(new_hash_name)
     
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
-        raise NotImplementedError()
+        board = np.zeros(shape=(2, BOARD_SIZE, BOARD_SIZE))
+        state = self.state
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
+                char = state[i * BOARD_SIZE + j]
+                if char == 'X':
+                    board[0, i, j] = 1
+                elif char == 'O':
+                    board[1, i, j] = 1
+        
+        player_board = board[self.player_idx, :, :]
+        opponent_board = board[1 - self.player_idx, :, :]
+
+        obs = np.stack([player_board, opponent_board])
+        if obs_mode == "flat":
+            return obs.flatten().astype(np.float32)
+        if obs_mode == "image":
+            return obs.astype(np.uint8) * 255
     
     def action_masks(self) -> list[bool]:
-        mask = [False] * (self.size ** 2 + 1)
+        mask = [False] * (BOARD_SIZE ** 2 + 1)
         for move in self.get_moves():
             mask[move.index] = True
         mask[-1] = not np.any(mask[:-1])
         return mask
 
     def get_move_from_action(self, action: int) -> BaseMove:
-        raise NotImplementedError()
+        if action == self.n_actions - 1:
+            return ExternalOthelloMove.get_null_move(self)        
+        # i = action // BOARD_SIZE
+        # j = action % BOARD_SIZE
+        return ExternalOthelloMove(f"{action},{self.null_moves},0")
+
+        # move = next(filter(lambda move: move.index == action, self.get_moves()))
+        # return move
 
     def get_move_from_user_input(self, user_input: str) -> BaseMove:
         raise NotImplementedError()

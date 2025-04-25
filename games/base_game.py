@@ -18,6 +18,9 @@ class BaseGame(ABC):
 
     def __init__(self):
         super().__init__()
+
+    def close(self):
+        pass # used to cleanup after the game has finished, but not required
     
     def get_moves(self) -> list[BaseMove]:
         raise NotImplementedError()

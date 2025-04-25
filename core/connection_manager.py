@@ -45,15 +45,15 @@ class ConnectionManager:
         
         command = self.__parse_command(command_args)
         logging.debug(command)
-        
+
         self.process.stdin.write(command)
         self.process.stdin.flush()
 
         response = self.process.stdout.readline()
+        response = response[:-1] # remove \n at the end
         logging.debug(f"response: {response}")
 
-        # remove \n at the end
-        return response[:-1]
+        return response
     
     def __add_kwargs(self, command_args: dict, **kwargs):
         for k, v in kwargs.items():

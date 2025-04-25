@@ -1,4 +1,5 @@
 import numpy as np
+from sb3_contrib import MaskablePPO
 
 from core.connection_manager import CMInstance
 from core.match_manager import MatchManager
@@ -9,14 +10,18 @@ from players import ExternalPlayer
 from players.bogo_player import BogoPlayer
 from players.human_player import HumanPlayer
 from players.othello_heuristics import OthelloPositionalPlayer, OthelloMobilityPlayer
+from players.rl_player import RLPlayer
 
 logger_setup.setup(stream=False)
 
-# othello = ExternalOthello()
+
 minimax = ExternalPlayer(algorithm='minimax', depth=7, log_info=True)
 
+model_mlp = MaskablePPO.load('./models/test_agent_2')
+agent_mlp = RLPlayer(model_mlp, deterministic=True, obs_mode="flat")
+
 mm = MatchManager(
-    players=[minimax, minimax],
+    players=[agent_mlp, minimax],
     game_type=ExternalOthello,
     n_games=50,
     mirror_games=True,

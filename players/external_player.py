@@ -16,6 +16,10 @@ class ExternalPlayer(BasePlayer):
         self.log_info = log_info
         self.hash_name = CMInstance.add_algorithm(algorithm, **kwargs)
 
+    def __del__(self):
+        pass
+        # CMInstance.remove_algorithm(self)
+
     def get_move(self, game: BaseGame) -> BaseMove:
         response = CMInstance.get_move(game, self)
         move_data, debug_msg = response.split(';')
