@@ -34,7 +34,7 @@ def setup(
 
         logger.addHandler(stream_handler)
 
-    return logger_name
+    return logger
 
 
 def validate_filename(filename: str):

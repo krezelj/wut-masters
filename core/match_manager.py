@@ -1,6 +1,7 @@
 import time
 import logging
 from typing import Optional, Type
+import csv
 
 import numpy as np
 
@@ -45,6 +46,7 @@ class MatchManager:
                  n_random_moves: int = 0,
                  pause_after_game: bool = False,
                  seed: int = 0,
+                 csv_filename: str = "csv_tmp.log",
                  verbose: int = 0):
         
         self.verbose = verbose
@@ -59,7 +61,15 @@ class MatchManager:
         self.moves_made = 0
 
         self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
+
+        csv_filename = f"./.logs/{csv_filename}"
+        self.csv_log = open(csv_filename, mode='w', newline='')
+        self.csv_writer = csv.writer(self.csv_log, delimiter=';')
+
         self.status = self.READY
+
+    def __del__(self):
+        self.csv_log.close()
 
     def run(self):
         if self.status == self.WAITING:
@@ -160,6 +170,13 @@ class MatchManager:
         msg += f"\tMove: {str(move)}\n"
         msg += f"\tTime: {self.__elapsed_ms:.2f}ms"
         logging.info(msg)
+
+        self.csv_writer.writerow([
+            str(self.current_game), 
+            str(move.index), 
+            self.current_player_name, 
+            np.round(self.__elapsed_ms, 2)]
+        )
 
     def __log_game(self):
         # from the perspective of the player with index 0
