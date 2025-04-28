@@ -39,6 +39,7 @@ class ExternalOthelloMove(BaseMove):
 
 class ExternalOthello(BaseGame):
 
+    name = 'othello'
     n_possible_outcomes = 3
     n_actions = BOARD_SIZE * BOARD_SIZE + 1 # TODO GameEnv should handle this 
     obs_shape = (2, BOARD_SIZE, BOARD_SIZE) # TODO GameEnv should handle this

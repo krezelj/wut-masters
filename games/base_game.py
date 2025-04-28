@@ -12,7 +12,7 @@ class BaseMove(ABC):
 
 class BaseGame(ABC):
 
-    __slots__ = ['hash_name', 'player_idx', 'is_over', 'result', 
+    __slots__ = ['name', 'hash_name', 'player_idx', 'is_over', 'result', 
                  'n_possible_outcomes', 'obs_shape', 'n_actions']
     
 

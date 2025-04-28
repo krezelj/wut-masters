@@ -44,6 +44,7 @@ class OthelloMove(BaseMove):
 
 class Othello(BaseGame):
 
+    name = 'othello'
     n_possible_outcomes = 3
     n_actions = 65 # TODO GameEnv should handle this 
     obs_shape = (2, 8, 8) # TODO GameEnv should handle this
@@ -262,6 +263,9 @@ class Othello(BaseGame):
             raise ValueError("Invalid move")
         return move
 
+    def get_move_from_move_data(self, move_data: str) -> BaseMove:
+        index = int(move_data.split(',')[0])
+        return self.get_move_from_index(index)
 
     def __str__(self):
         s = ""

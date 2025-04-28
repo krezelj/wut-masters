@@ -92,9 +92,14 @@ class ConnectionManager:
     def get_move(self, game: BaseGame, player: BasePlayer) -> str:
         command_args = {
             'command': 'getMove',
-            'game': game.hash_name,
             'algorithm': player.hash_name,
         }
+        if hasattr(game, 'hash_name'):
+            command_args['game'] = game.hash_name
+        else:
+            command_args['name'] = game.name
+            command_args['state'] = str(game)
+
         return self.__send_command(command_args)
 
     def get_moves(self, game: BaseGame) -> str:
