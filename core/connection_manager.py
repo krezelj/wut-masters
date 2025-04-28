@@ -44,7 +44,7 @@ class ConnectionManager:
             raise Exception(f"Process has terminated. Error: {error_message}")
         
         command = self.__parse_command(command_args)
-        logging.debug(command)
+        logging.debug(command[:-1])
 
         self.process.stdin.write(command)
         self.process.stdin.flush()
