@@ -24,17 +24,12 @@ class ExternalOthelloMove(BaseMove):
 
     def __init__(self, move_data: str):
         self.move_data = move_data
-        # self.index = int(self.move_data.split(',')[0])
-        # self.null_moves = int(self.move_data[1])
-        # self.flip_mask = int(self.move_data[2])
 
     @classmethod
     def get_null_move(cls, game: 'ExternalOthello') -> 'ExternalOthelloMove':
         return ExternalOthelloMove(f"-1,{game.null_moves},0")
 
     def __str__(self):
-        # return self.algebraic
-        # return f"{self.index},{self.null_moves},{self.flip_mask}"
         return self.move_data
 
 class ExternalOthello(BaseGame):
@@ -162,26 +157,10 @@ class ExternalOthello(BaseGame):
     def get_move_from_action(self, action: int) -> BaseMove:
         if action == self.n_actions - 1:
             return ExternalOthelloMove.get_null_move(self)        
-        # i = action // BOARD_SIZE
-        # j = action % BOARD_SIZE
         return ExternalOthelloMove(f"{action},{self.null_moves},0")
-
-        # move = next(filter(lambda move: move.index == action, self.get_moves()))
-        # return move
 
     def get_move_from_user_input(self, user_input: str) -> BaseMove:
         raise NotImplementedError()
-        # if len(user_input) != 2:
-        #     raise ValueError("Invalid move")
-        # j = ord(user_input[0]) - ord('a')
-        # i = int(user_input[1]) - 1
-        # if not is_in_limits(i, j, self.shape):
-        #     raise ValueError("Invalid move")
-        # try:
-        #     move = next(filter(lambda move: move.position == (i, j), self.get_moves()))
-        # except:
-        #     raise ValueError("Invalid move")
-        # return move
 
     def get_move_from_move_data(self, move_data: str) -> BaseMove:
         return ExternalOthelloMove(move_data)
