@@ -19,8 +19,9 @@ class MatchManager:
     OVER = -1       # all games have finished
 
     # log levels
-    __BASE_GAME_LL = 1
-    __BASE_MOVE_LL = 2
+    __BASE_MATCH_LL = 1
+    __BASE_GAME_LL = __BASE_MATCH_LL + 1
+    __BASE_MOVE_LL = __BASE_GAME_LL + 1
     __BASE_MOVE_STATE_LL = __BASE_MOVE_LL + 1
 
     @property
@@ -94,7 +95,7 @@ class MatchManager:
                 self.__start_new_game()
 
             if self.current_game is None:
-                self.status = self.OVER
+                self.__finish_match()
                 return
             
             self.__run_game()
@@ -152,6 +153,11 @@ class MatchManager:
         if self.verbose >= self.__BASE_GAME_LL:
             self.__log_game()
 
+    def __finish_match(self):
+        self.status = self.OVER
+        if self.verbose >= self.__BASE_MATCH_LL:
+            self.__log_match()
+
     def __make_move(self, move: BaseMove):
         if self.verbose >= self.__BASE_MOVE_LL:
             self.__log_move(move)
@@ -194,4 +200,8 @@ class MatchManager:
 
         msg = f"Game {self.games_completed:>5} finished ({wins}-{draws}-{losses})"
         logging.info(msg)
-        # print(f"Game {self.games_completed:>5} | {wins}-{draws}-{losses}")
+
+    def __log_match(self):
+        logging.info(self.results)
+
+        
