@@ -89,9 +89,9 @@ class ExternalOthello(BaseGame):
     def result(self, value):
         pass
 
-    def __init__(self, hash_name: Optional[str] = None):
+    def __init__(self, hash_name: Optional[str] = None, use_zobrist: bool = True):
         if hash_name is None:
-            self.hash_name = CMInstance.add_game(name='othello')
+            self.hash_name = CMInstance.add_game(name='othello', zobrist=use_zobrist)
         else:
             self.hash_name = hash_name
         self.__state_cache = None

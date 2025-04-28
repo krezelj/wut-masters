@@ -12,12 +12,14 @@ class GameGenerator:
                  n_games: int, 
                  mirror_games: bool, 
                  n_random_moves: int,
+                 game_kwargs: dict = {},
                  seed: int = 0):
         
         self.game_type = game_type
         self.n_games = n_games
         self.mirror_games = mirror_games
         self.n_random_moves = n_random_moves
+        self.game_kwargs = game_kwargs
         self._rng = np.random.default_rng(seed)
 
         self.n_games_generated = 0
@@ -43,7 +45,7 @@ class GameGenerator:
         # return game_to_return
 
     def __generate_game(self) -> BaseGame:
-        game = self.game_type()
+        game = self.game_type(**self.game_kwargs)
         for _ in range(self.n_random_moves):
 
             # despite BaseGame implementing get_random_move,

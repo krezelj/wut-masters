@@ -45,6 +45,7 @@ class MatchManager:
                  mirror_games: bool = False,
                  n_random_moves: int = 0,
                  pause_after_game: bool = False,
+                 game_kwargs: dict = {},
                  seed: int = 0,
                  csv_filename: str = "csv_tmp.log",
                  verbose: int = 0):
@@ -60,7 +61,13 @@ class MatchManager:
         self.games_completed = 0
         self.moves_made = 0
 
-        self.game_generator = GameGenerator(game_type, n_games, mirror_games, n_random_moves, seed)
+        self.game_generator = GameGenerator(
+            game_type, 
+            n_games, 
+            mirror_games, 
+            n_random_moves, 
+            game_kwargs,
+            seed)
 
         csv_filename = f"./.logs/{csv_filename}"
         self.csv_log = open(csv_filename, mode='w', newline='')
