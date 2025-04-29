@@ -14,7 +14,7 @@ def setup(
     logger.setLevel(level)
 
     if filename is not None:
-        validate_filename(filename)
+        filename = validate_filename(filename)
         file_formatter = logging.Formatter(
             fmt='[%(asctime)-8s][%(levelname)-8s] %(name)s:%(message)s',
             datefmt='%H:%M:%S',
@@ -42,3 +42,4 @@ def validate_filename(filename: str):
     directories = os.path.dirname(filename)
     if directories and not os.path.exists(directories):
         os.makedirs(directories)
+    return filename

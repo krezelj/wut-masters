@@ -170,7 +170,7 @@ class MatchManager:
         if self.verbose >= self.__BASE_MOVE_LL:
             self.__log_move(move)
         if self.log_csv_data:
-            self.__log_csv_data()
+            self.__log_csv_data(move)
         self.moves_made += 1
         self.current_game.make_move(move)
         self.__advance_players()
