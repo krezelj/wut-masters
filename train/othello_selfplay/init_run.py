@@ -19,8 +19,6 @@ log_path = path(os.path.dirname(__file__), ".logs")
 csv_path = path(os.path.dirname(__file__), ".data")
 model_path = path(os.path.dirname(__file__), ".models")
 
-print(log_path, csv_path, model_path)
-
 logger_setup.setup(filename=path(log_path, "model_init"))
 
 bogo = BogoPlayer(seed=0)
