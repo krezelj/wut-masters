@@ -48,7 +48,7 @@ class MatchManager:
                  pause_after_game: bool = False,
                  game_kwargs: dict = {},
                  seed: int = 0,
-                 csv_filename: str = ".logs/csv_tmp.csv",
+                 csv_filename: Optional[str] = ".logs/csv_tmp.csv",
                  verbose: int = 0):
         
         self.verbose = verbose
@@ -70,15 +70,22 @@ class MatchManager:
             game_kwargs,
             seed)
 
-        if not csv_filename.endswith(".csv"):
-            csv_filename += ".csv"
-        self.csv_log = open(csv_filename, mode='w', newline='')
-        self.csv_writer = csv.writer(self.csv_log, delimiter=';')
+        if csv_filename is not None:
+            self.log_csv_data = True
+            if not csv_filename.endswith(".csv"):
+                csv_filename += ".csv"
+            self.csv_log = open(csv_filename, mode='w', newline='')
+            self.csv_writer = csv.writer(self.csv_log, delimiter=';')
+        else:
+            self.log_csv_data = False
+            self.csv_log = None
+            self.csv_writer = None
 
         self.status = self.READY
 
     def __del__(self):
-        self.csv_log.close()
+        if self.csv_log is not None:
+            self.csv_log.close()
 
     def run(self):
         if self.status == self.WAITING:
@@ -162,6 +169,8 @@ class MatchManager:
     def __make_move(self, move: BaseMove):
         if self.verbose >= self.__BASE_MOVE_LL:
             self.__log_move(move)
+        if self.log_csv_data:
+            self.__log_csv_data()
         self.moves_made += 1
         self.current_game.make_move(move)
         self.__advance_players()
@@ -185,6 +194,7 @@ class MatchManager:
         msg += f"\tTime: {self.__elapsed_ms:.2f}ms"
         logging.info(msg)
 
+    def __log_csv_data(self, move: BaseMove):
         self.csv_writer.writerow([
             str(self.current_game), 
             str(move.index), 
