@@ -48,7 +48,7 @@ class MatchManager:
                  pause_after_game: bool = False,
                  game_kwargs: dict = {},
                  seed: int = 0,
-                 csv_filename: str = "csv_tmp.log",
+                 csv_filename: str = ".logs/csv_tmp.csv",
                  verbose: int = 0):
         
         self.verbose = verbose
@@ -70,7 +70,8 @@ class MatchManager:
             game_kwargs,
             seed)
 
-        csv_filename = f"./.logs/{csv_filename}"
+        if not csv_filename.endswith(".csv"):
+            csv_filename += ".csv"
         self.csv_log = open(csv_filename, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_log, delimiter=';')
 

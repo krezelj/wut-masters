@@ -5,7 +5,7 @@ from typing import Optional
 
 def setup(
         logger_name: Optional[str] = None,
-        filename: Optional[str] = "tmp.log", 
+        filename: Optional[str] = ".logs/tmp.log", 
         stream: bool = False,
         level: int = logging.INFO):
     
@@ -14,7 +14,6 @@ def setup(
     logger.setLevel(level)
 
     if filename is not None:
-        filename = f"./.logs/{filename}"
         validate_filename(filename)
         file_formatter = logging.Formatter(
             fmt='[%(asctime)-8s][%(levelname)-8s] %(name)s:%(message)s',
@@ -38,6 +37,8 @@ def setup(
 
 
 def validate_filename(filename: str):
+    if not filename.endswith(".log"):
+        filename += ".log"
     directories = os.path.dirname(filename)
     if directories and not os.path.exists(directories):
         os.makedirs(directories)
