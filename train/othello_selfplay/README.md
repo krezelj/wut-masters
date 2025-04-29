@@ -1,0 +1,1 @@
+- model_0 trained with bogo for ~100k steps
