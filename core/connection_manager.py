@@ -99,6 +99,7 @@ class ConnectionManager:
         else:
             command_args['name'] = game.name
             command_args['state'] = str(game)
+            command_args['zobrist'] = "True"
 
         return self.__send_command(command_args)
 
