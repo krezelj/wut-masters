@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
 import numpy as np
 
@@ -11,7 +11,7 @@ class GameGenerator:
                  game_type: Type[BaseGame],
                  n_games: int, 
                  mirror_games: bool, 
-                 n_random_moves: int,
+                 n_random_moves: Union[int, tuple[int, int]],
                  game_kwargs: dict = {},
                  seed: int = 0):
         
@@ -46,7 +46,14 @@ class GameGenerator:
 
     def __generate_game(self) -> BaseGame:
         game = self.game_type(**self.game_kwargs)
-        for _ in range(self.n_random_moves):
+        if isinstance(self.n_random_moves, tuple):
+            low = self.n_random_moves[0] // 2
+            high = self.n_random_moves[1] // 2 + 1
+            n = self._rng.integers(low, high) * 2
+        else:
+            n = self.n_random_moves
+        assert(n % 2 == 0)
+        for _ in range(n):
 
             # despite BaseGame implementing get_random_move,
             # we use own random seed generator for consistensy

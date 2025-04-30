@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Type
+from typing import Optional, Type, Union
 import csv
 
 import numpy as np
@@ -44,7 +44,7 @@ class MatchManager:
                  player_names: Optional[list[str]] = None,
                  n_games: int = 1,
                  mirror_games: bool = False,
-                 n_random_moves: int = 0,
+                 n_random_moves: Union[int, tuple[int, int]] = 0,
                  pause_after_game: bool = False,
                  game_kwargs: dict = {},
                  seed: int = 0,
@@ -134,7 +134,7 @@ class MatchManager:
     def __run_game(self):
         while not self.current_game.is_over:
             if self.status == self.RUNNING:
-                self.t_start = time.time()
+                self.t_start = time.process_time_ns()
 
             # handle undefined player
             if self.current_player is None:
@@ -147,7 +147,7 @@ class MatchManager:
             else:
                 move = self.current_player.get_move(self.current_game)
 
-            self.__elapsed_ms = (time.time() - self.t_start) * 1000
+            self.__elapsed_ms = (time.process_time_ns() - self.t_start) / 1e6
             self.__make_move(move)
 
     def __prepare_for_next_game(self):
@@ -191,7 +191,7 @@ class MatchManager:
         if self.verbose >= self.__BASE_MOVE_STATE_LL:
             msg += f"\tState: {str(self.current_game)}\n"
         msg += f"\tMove: {str(move)}\n"
-        msg += f"\tTime: {self.__elapsed_ms:.2f}ms"
+        msg += f"\tTime: {self.__elapsed_ms:.5f}ms"
         logging.info(msg)
 
     def __log_csv_data(self, move: BaseMove):
