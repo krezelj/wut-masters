@@ -57,7 +57,12 @@ class GameEnv(gym.Env):
         reward = 0
         info = self._get_info()
         if self.mm.status in [self.mm.OVER, self.mm.READY]:
-            reward = 1 if self.mm.last_winner_idx == 0 else -1
+            if self.mm.last_winner_idx == 0:
+                reward = 1
+            elif self.mm.last_winner_idx < 0:
+                reward = 0
+            else:
+                reward = -1
             info['is_success'] = self.mm.last_winner_idx == 0
             terminated = True
 
