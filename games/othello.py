@@ -159,14 +159,6 @@ class Othello(BaseGame):
         # raise NotImplementedError()
         return np.random.choice(self.get_moves())
 
-    def get_move_from_index(self, index: int) -> OthelloMove:
-        if index < 0:
-            return OthelloMove(None, [], self.black_to_move, self.null_moves, self.shape)
-        i = index // self.size
-        j = index % self.size
-        captures = self.__get_captures_from_position(i, j)
-        return OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape)
-
     def make_move(self, move: OthelloMove):
         super().make_move(move)
         if move.position is not None:
@@ -243,6 +235,14 @@ class Othello(BaseGame):
             mask[move.index] = True
         mask[-1] = not np.any(mask[:-1])
         return mask
+
+    def get_move_from_index(self, index: int) -> OthelloMove:
+        if index < 0:
+            return OthelloMove(None, [], self.black_to_move, self.null_moves, self.shape)
+        i = index // self.size
+        j = index % self.size
+        captures = self.__get_captures_from_position(i, j)
+        return OthelloMove((i, j), captures, self.black_to_move, self.null_moves, self.shape)
 
     def get_move_from_action(self, action: int) -> BaseMove:
         if action == self.n_actions - 1:
