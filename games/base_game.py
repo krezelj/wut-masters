@@ -31,6 +31,9 @@ class BaseGame(ABC):
     def get_move_from_index(self, index: int) -> BaseMove:
         raise NotImplementedError()
 
+    def sort_moves(self, moves: list[BaseMove]):
+        raise NotImplementedError()
+
     def make_move(self, move: BaseMove):
         idxs = [m.index for m in self.get_moves()]
         assert(move.index in idxs)

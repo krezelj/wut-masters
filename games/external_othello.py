@@ -34,6 +34,17 @@ class ExternalOthelloMove(BaseMove):
 
 class ExternalOthello(BaseGame):
 
+    weights = np.array([
+            [100, -20, 10, 5, 5, 10, -20, 100],
+            [-20, -50, -2, -2, -2, -2, -50, -20],
+            [10, -2, -1, -1, -1, -1, -2, 10],
+            [5, -2, -1, -1, -1, -1, -2, 5],
+            [5, -2, -1, -1, -1, -1, -2, 5],
+            [10, -2, -1, -1, -1, -1, -2, 10],
+            [-20, -50, -2, -2, -2, -2, -50, -20],
+            [100, -20, 10, 5, 5, 10, -20, 100],
+    ]).flatten()
+
     name = 'othello'
     n_possible_outcomes = 3
     n_actions = BOARD_SIZE * BOARD_SIZE + 1 # TODO GameEnv should handle this 
@@ -107,6 +118,9 @@ class ExternalOthello(BaseGame):
 
     def get_move_from_index(self, index: int) -> ExternalOthelloMove:
         raise NotImplementedError()
+
+    def sort_moves(self, moves: list[BaseMove]):
+        moves.sort(key=lambda m: -self.weights[m.index])
 
     def make_move(self, move: ExternalOthelloMove):
         move_data = CMInstance.make_move(self, move)
