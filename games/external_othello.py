@@ -101,16 +101,19 @@ class ExternalOthello(BaseGame):
         else:
             self.hash_name = hash_name
         self.__state_cache = None
+        self.__moves_cache = None
 
     def close(self):
         CMInstance.remove_game(self)
 
     def get_moves(self) -> list[ExternalOthelloMove]:
+        if self.__moves_cache is not None:
+            return self.__moves_cache
         moves_data = CMInstance.get_moves(self).split(';')
-        moves = []
+        self.__moves_cache = []
         for md in moves_data:
-            moves.append(ExternalOthelloMove(md))
-        return moves
+            self.__moves_cache.append(ExternalOthelloMove(md))
+        return self.__moves_cache
 
     def get_random_move(self) -> ExternalOthelloMove:
         move_data = CMInstance.get_random_move(self)
@@ -126,10 +129,12 @@ class ExternalOthello(BaseGame):
         move_data = CMInstance.make_move(self, move)
         move.move_data = move_data
         self.__state_cache = None
+        self.__moves_cache = None
 
     def undo_move(self, move: ExternalOthelloMove):
         CMInstance.undo_move(self, move)
         self.__state_cache = None
+        self.__moves_cache = None
 
     def evaluate(self) -> float:
         return float(CMInstance.evaluate(self))
