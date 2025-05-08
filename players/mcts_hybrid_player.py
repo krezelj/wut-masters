@@ -151,33 +151,74 @@ class MCTSPlayer(BasePlayer):
             value_estimator=lambda game: 0,
             lam=2
         )
-    
+
+
+class NetWrapper(torch.nn.Module):
+
+    def __init__(self, policy, mode: Literal["actor", "critic"]):
+        super().__init__()
+        self.features_extractor = policy.features_extractor
+        self.mlp_extractor = policy.mlp_extractor
+        self.mode = mode
+
+        if mode == "actor":
+            self.output_head = policy.action_net
+        else:
+            self.output_head = policy.value_net
+
+    def forward(self, obs):
+        features = self.features_extractor(obs)
+        latent_pi, latent_vf = self.mlp_extractor(features)
+        if self.mode == "actor":
+            return self.output_head(latent_pi)
+        else:
+            return self.output_head(latent_vf)
+
 
 class ModelController:
 
-    def __init__(self, model: MaskablePPO, obs_mode: Literal["flat", "image"], c: float = 5):
-        self.model = model
+    def __init__(self, model: MaskablePPO, obs_mode: Literal["flat", "image"], obs_shape, c: float = 5):
+        self.actor = torch.jit.trace(
+            NetWrapper(model.policy, mode="actor"),
+            example_inputs=torch.randn(1, *obs_shape)
+        )
+        self.actor.eval()
+
+        self.critic = torch.jit.trace(
+            NetWrapper(model.policy, mode="critic"),
+            example_inputs=torch.randn(1, *obs_shape),
+        )
+        self.critic.eval()
+
         self.obs_mode = obs_mode
         self.c = c
 
     def simulation_policy(self, node: 'MCTSPlayer.Node'):
-        # ucb = node.value_sum / node.visit_count * np.sqrt(2 * np.log(node.parent.visit_count) / node.visit_count)
         Q = node.value_sum / (node.visit_count + 1)
         U = self.c * node.prior_probability * np.sqrt(node.parent.visit_count / (1 + node.visit_count))
         return Q + U
     
     def prior_func(self, game: BaseGame):
+        action_masks = game.action_masks()
         obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
-        probs = self.model.policy.get_distribution(obs, action_masks=game.action_masks()).distribution.probs
-        probs = probs.detach().numpy().squeeze()
+
+        logits = self.actor(obs)
+        logits[~torch.tensor(action_masks).unsqueeze(dim=0)] = -torch.inf
+        probs = torch.softmax(logits, dim=1).detach().squeeze()
         return probs
     
     def rollout_policy(self, game: BaseGame):
         action_masks = game.action_masks()
-        action, _ = self.model.predict(game.get_obs(obs_mode=self.obs_mode), action_masks=action_masks)
+        obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
+
+        logits = self.actor(obs)
+        logits[~torch.tensor(action_masks).unsqueeze(dim=0)] = -torch.inf
+        probs = torch.softmax(logits, dim=1).detach().squeeze()
+
+        action = torch.distributions.Categorical(probs=probs).sample()
         return game.get_move_from_action(action)
     
     def value_estimator(self, game: BaseGame):
         obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
-        v = self.model.policy.predict_values(obs).item()
+        v = self.critic(obs).item()
         return v
