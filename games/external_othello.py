@@ -161,11 +161,14 @@ class ExternalOthello(BaseGame):
         if obs_mode == "image":
             return obs.astype(np.uint8) * 255
     
-    def action_masks(self) -> list[bool]:
+    def action_masks(self, with_moves: bool = False) -> list[bool]:
         mask = [False] * (BOARD_SIZE ** 2 + 1)
-        for move in self.get_moves():
+        moves = self.get_moves()
+        for move in moves:
             mask[move.index] = True
         mask[-1] = not np.any(mask[:-1])
+        if with_moves:
+            return mask, moves
         return mask
 
     def get_move_from_action(self, action: int) -> BaseMove:

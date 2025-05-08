@@ -229,7 +229,8 @@ class Othello(BaseGame):
         if obs_mode == "image":
             return obs.astype(np.uint8) * 255
     
-    def action_masks(self) -> list[bool]:
+    def action_masks(self, with_moves: bool = False) -> list[bool]:
+        raise NotImplementedError() # handle `with_moves`
         mask = [False] * (self.size ** 2 + 1)
         for move in self.get_moves():
             mask[move.index] = True

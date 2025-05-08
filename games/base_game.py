@@ -53,7 +53,7 @@ class BaseGame(ABC):
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         raise NotImplementedError()
     
-    def action_masks(self) -> list[bool]:
+    def action_masks(self, with_moves: bool = False) -> list[bool]:
         raise NotImplementedError()
     
     def get_move_from_action(self, action: int) -> BaseMove:
