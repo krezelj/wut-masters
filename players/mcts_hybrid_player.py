@@ -70,7 +70,8 @@ class MCTSPlayer(BasePlayer):
 
         self.root = MCTSPlayer.Node(game, None, 0)
         self.root.expand(self.prior_func)
-        self.build_tree()
+        with torch.inference_mode():
+            self.build_tree()
 
         best_idx = self.root.get_best_child_index(MCTSPlayer.visit_count_estimator)
         # value = best_child.value_sum / best_child.visit_count
@@ -166,21 +167,17 @@ class ModelController:
         return Q + U
     
     def prior_func(self, game: BaseGame):
-        with torch.inference_mode():
-            obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0).to("cpu")
-            probs = self.model.policy.get_distribution(obs, action_masks=game.action_masks()).distribution.probs
-            probs = probs.detach().numpy().squeeze()
+        obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
+        probs = self.model.policy.get_distribution(obs, action_masks=game.action_masks()).distribution.probs
+        probs = probs.detach().numpy().squeeze()
         return probs
     
     def rollout_policy(self, game: BaseGame):
-        with torch.inference_mode():
-            action_masks = game.action_masks()
-            # obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0).to("cpu")
-            action, _ = self.model.predict(game.get_obs(obs_mode=self.obs_mode), action_masks=action_masks)
+        action_masks = game.action_masks()
+        action, _ = self.model.predict(game.get_obs(obs_mode=self.obs_mode), action_masks=action_masks)
         return game.get_move_from_action(action)
     
     def value_estimator(self, game: BaseGame):
-        with torch.inference_mode():
-            obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0).to("cpu")
-            v = self.model.policy.predict_values(obs).item()
+        obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
+        v = self.model.policy.predict_values(obs).item()
         return v
