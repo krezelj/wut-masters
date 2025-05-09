@@ -153,7 +153,15 @@ class ConnectionManager:
             'game': game.hash_name,
         }
         return self.__send_command(command_args)
-
     
+    def run_game(self, game: BaseGame, players: list[BasePlayer], first_player_idx: int):
+        command_args = {
+            'command': 'runGame',
+            'game': game.hash_name,
+            'players': ";".join(map(lambda p: p.hash_name, players)),
+            "firstPlayerIdx": str(first_player_idx)
+        }
+        return self.__send_command(command_args)
+
 
 CMInstance = ConnectionManager(verbose=True)
