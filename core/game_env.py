@@ -40,6 +40,7 @@ class GameEnv(gym.Env):
             n_games=-1,
             mirror_games=True,
             pause_after_game=True,
+            allow_external_simulation=False,
             seed=seed,
             **kwargs)
 

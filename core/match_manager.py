@@ -92,8 +92,9 @@ class MatchManager:
         self.status = self.READY
 
     def __del__(self):
-        if self.csv_log is not None:
-            self.csv_log.close()
+        pass
+        # if self.csv_log is not None:
+        #     self.csv_log.close()
 
     def run(self):
         if self.status == self.WAITING:
