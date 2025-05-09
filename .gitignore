@@ -4,6 +4,7 @@ __pycache__
 .models
 .data
 .profiler
+external/runtimes
 
 *.ipynb
 *.zip
