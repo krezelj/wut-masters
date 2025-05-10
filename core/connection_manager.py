@@ -162,6 +162,21 @@ class ConnectionManager:
             "firstPlayerIdx": str(first_player_idx)
         }
         return self.__send_command(command_args)
-
+    
+    def run_match(self, 
+                  game_type: Literal["othello", "connect_four"],
+                  players: list[BasePlayer],
+                  n_games: int,
+                  mirror_games: bool,
+                  n_random_moves: int):
+        command_args = {
+            "command": "runMatch",
+            "gameType": game_type,
+            "players": ";".join(map(lambda p: p.hash_name, players)),
+            "nGames": str(n_games),
+            "mirrorGames": str(mirror_games),
+            "nRandomMoves": str(n_random_moves)
+        }
+        return self.__send_command(command_args)
 
 CMInstance = ConnectionManager(verbose=True)

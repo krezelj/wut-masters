@@ -62,7 +62,11 @@ class MatchManager:
         self.verbose = verbose
         self.pause_after_game = pause_after_game
         self.players = players
+        self.game_type = game_type
         self.player_names = player_names
+        self.n_games = n_games
+        self.mirror_games = mirror_games
+        self.n_random_moves = n_random_moves
 
         self.current_game: Optional[BaseGame] = None
         self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
@@ -128,7 +132,25 @@ class MatchManager:
             if self.pause_after_game:
                 self.status = self.READY
                 return
-            
+
+    def run_external(self):
+        results = CMInstance.run_match(
+            game_type=self.game_type.name,
+            players=self.players,
+            n_games=self.n_games,
+            mirror_games=self.mirror_games,
+            n_random_moves=self.n_random_moves
+        )
+
+        results = results.split(',')
+        iterator = 0
+        for i in range(self.results.shape[0]):
+            for j in range(self.results.shape[1]):
+                self.results[i, j] = int(results[iterator])
+                iterator += 1
+        
+        self.__finish_match()
+
     def respond(self, move: BaseMove):
         self.response_move = move
         self.status = self.RESUMING
