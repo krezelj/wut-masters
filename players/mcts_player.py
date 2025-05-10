@@ -152,7 +152,7 @@ class MCTSPlayer(BasePlayer):
             prior_func=lambda game: np.zeros(shape=(65)),
             rollout_policy=MCTSPlayer.random_rollout,
             value_estimator=lambda game: 0,
-            lam=2
+            lam=1
         )
 
 
