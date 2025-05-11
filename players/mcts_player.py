@@ -100,6 +100,20 @@ class MCTSPlayer(BasePlayer):
         current.visit_count += 1
         return current
 
+    def evaluate_leaf(self, leaf: 'MCTSPlayer.Node'):
+        if self.lam == 0:
+            rollout_value = 0
+        else:
+            terminal_state = self.rollout(leaf.game.copy())
+            rollout_value = terminal_state.evaluate()
+            if terminal_state.player_idx == leaf.game.player_idx:
+                rollout_value = -rollout_value
+            rollout_value = np.sign(rollout_value)
+        
+        estimator_value = self.value_estimator(leaf.game)
+        value = (1 - self.lam) * estimator_value + self.lam * rollout_value
+        return value
+
     def rollout(self, game: BaseGame) -> BaseGame:
         while not game.is_over:
             self.__nodes += 1
@@ -107,17 +121,6 @@ class MCTSPlayer(BasePlayer):
             # move = game.get_random_move()
             game.make_move(move)
         return game
-
-    def evaluate_leaf(self, leaf: 'MCTSPlayer.Node'):
-        terminal_state = self.rollout(leaf.game.copy())
-        rollout_value = terminal_state.evaluate()
-        if terminal_state.player_idx == leaf.game.player_idx:
-            rollout_value = -rollout_value
-        rollout_value = np.sign(rollout_value)
-        
-        estimator_value = self.value_estimator(leaf.game)
-        value = (1 - self.lam) * estimator_value + self.lam * rollout_value
-        return value
 
     def backtrack(self, current: 'MCTSPlayer.Node', value: float):
         while current is not None:

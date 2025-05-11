@@ -10,6 +10,8 @@ BOARD_SIZE = 8
 
 class ExternalOthelloMove(BaseMove):
 
+    null_move_idx = 64
+
     @property
     def algebraic(self):
         if self.index < 0:
@@ -35,7 +37,7 @@ class ExternalOthelloMove(BaseMove):
 
     @classmethod
     def get_null_move(cls, game: 'ExternalOthello') -> 'ExternalOthelloMove':
-        return ExternalOthelloMove(f"-1,{game.null_moves},0")
+        return ExternalOthelloMove(f"{ExternalOthelloMove.null_move_idx},{game.null_moves},0")
 
     def __str__(self):
         return self.move_data

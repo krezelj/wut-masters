@@ -5,6 +5,7 @@ import csv
 
 import numpy as np
 
+from core.connection_manager import CMInstance
 from core.game_generator import GameGenerator
 from games.base_game import BaseGame, BaseMove
 from players.base_player import BasePlayer
@@ -46,15 +47,26 @@ class MatchManager:
                  mirror_games: bool = False,
                  n_random_moves: Union[int, tuple[int, int]] = 0,
                  pause_after_game: bool = False,
+                 allow_external_simulation: bool = True,
                  game_kwargs: dict = {},
                  seed: int = 0,
                  csv_filename: Optional[str] = ".logs/csv_tmp.csv",
                  verbose: int = 0):
         
+        if allow_external_simulation:
+            assert(all(map(lambda p: hasattr(p, "hash_name"), players)))
+            self.simulate_externally = True
+        else:
+            self.simulate_externally = False
+
         self.verbose = verbose
         self.pause_after_game = pause_after_game
         self.players = players
+        self.game_type = game_type
         self.player_names = player_names
+        self.n_games = n_games
+        self.mirror_games = mirror_games
+        self.n_random_moves = n_random_moves
 
         self.current_game: Optional[BaseGame] = None
         self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
@@ -84,8 +96,9 @@ class MatchManager:
         self.status = self.READY
 
     def __del__(self):
-        if self.csv_log is not None:
-            self.csv_log.close()
+        pass
+        # if self.csv_log is not None:
+        #     self.csv_log.close()
 
     def run(self):
         if self.status == self.WAITING:
@@ -106,7 +119,10 @@ class MatchManager:
                 self.__finish_match()
                 return
             
-            self.__run_game()
+            if self.simulate_externally:
+                self.__run_external_game()
+            else:
+                self.__run_game()
 
             if self.status == self.WAITING:
                 return
@@ -116,20 +132,28 @@ class MatchManager:
             if self.pause_after_game:
                 self.status = self.READY
                 return
-            
+
+    def run_external(self):
+        results = CMInstance.run_match(
+            game_type=self.game_type.name,
+            players=self.players,
+            n_games=self.n_games,
+            mirror_games=self.mirror_games,
+            n_random_moves=self.n_random_moves
+        )
+
+        results = results.split(',')
+        iterator = 0
+        for i in range(self.results.shape[0]):
+            for j in range(self.results.shape[1]):
+                self.results[i, j] = int(results[iterator])
+                iterator += 1
+        
+        self.__finish_match()
+
     def respond(self, move: BaseMove):
         self.response_move = move
         self.status = self.RESUMING
-
-    def __start_new_game(self):
-        self.current_game, is_mirrored = self.game_generator.get_next_game()
-        self.moves_made = 0
-        self.current_player_idx = 0
-        if self.current_game is None:
-            return
-        elif is_mirrored:
-            self.__advance_players()
-        self.first_player_idx = self.current_player_idx
 
     def __run_game(self):
         while not self.current_game.is_over:
@@ -150,10 +174,24 @@ class MatchManager:
             self.__elapsed_ms = (time.process_time_ns() - self.t_start) / 1e6
             self.__make_move(move)
 
+    def __run_external_game(self):
+        debug_response = CMInstance.run_game(self.current_game, self.players, self.first_player_idx)
+        logging.debug(debug_response)
+
     def __prepare_for_next_game(self):
         if self.current_game is not None:
             self.current_game.close()
         self.current_game = None
+
+    def __start_new_game(self):
+        self.current_game, is_mirrored = self.game_generator.get_next_game()
+        self.moves_made = 0
+        self.current_player_idx = 0
+        if self.current_game is None:
+            return
+        elif is_mirrored:
+            self.__advance_players()
+        self.first_player_idx = self.current_player_idx
 
     def __finish_game(self):
         self.games_completed += 1
