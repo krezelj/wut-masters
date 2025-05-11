@@ -5,7 +5,7 @@ import csv
 
 import numpy as np
 
-from core.connection_manager import CMInstance
+from core.connection_manager import CMInstance, ConnectionManager
 from core.game_generator import GameGenerator
 from games.base_game import BaseGame, BaseMove
 from players.base_player import BasePlayer
@@ -47,12 +47,19 @@ class MatchManager:
                  mirror_games: bool = False,
                  n_random_moves: Union[int, tuple[int, int]] = 0,
                  pause_after_game: bool = False,
+                 connection_manager: Optional['ConnectionManager'] = CMInstance,
                  allow_external_simulation: bool = True,
                  game_kwargs: dict = {},
                  seed: int = 0,
                  csv_filename: Optional[str] = ".logs/csv_tmp.csv",
-                 verbose: int = 0):
+                 verbose: int = 0,
+                 **kwargs):
         
+        if connection_manager is None:
+            self.connection_manager = ConnectionManager(verbose=True)
+        else:
+            self.connection_manager = connection_manager
+
         if allow_external_simulation:
             assert(all(map(lambda p: hasattr(p, "hash_name"), players)))
             self.simulate_externally = True
@@ -80,7 +87,8 @@ class MatchManager:
             mirror_games, 
             n_random_moves, 
             game_kwargs,
-            seed)
+            seed,
+            **kwargs)
 
         if csv_filename is not None:
             self.log_csv_data = True
@@ -134,7 +142,7 @@ class MatchManager:
                 return
 
     def run_external(self):
-        results = CMInstance.run_match(
+        results = self.connection_manager.run_match(
             game_type=self.game_type.name,
             players=self.players,
             n_games=self.n_games,
@@ -175,7 +183,7 @@ class MatchManager:
             self.__make_move(move)
 
     def __run_external_game(self):
-        debug_response = CMInstance.run_game(self.current_game, self.players, self.first_player_idx)
+        debug_response = self.connection_manager.run_game(self.current_game, self.players, self.first_player_idx)
         logging.debug(debug_response)
 
     def __prepare_for_next_game(self):

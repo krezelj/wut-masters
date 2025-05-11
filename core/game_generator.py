@@ -13,7 +13,8 @@ class GameGenerator:
                  mirror_games: bool, 
                  n_random_moves: Union[int, tuple[int, int]],
                  game_kwargs: dict = {},
-                 seed: int = 0):
+                 seed: int = 0,
+                 **kwargs):
         
         self.game_type = game_type
         self.n_games = n_games

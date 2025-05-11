@@ -1,3 +1,4 @@
+import logging
 from typing import Literal, Optional, Type
 
 import numpy as np
@@ -6,6 +7,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from gymnasium.envs.registration import register
 
+from core.connection_manager import ConnectionManager, CMInstance
 from core.match_manager import MatchManager
 from games.base_game import BaseGame
 from players.base_player import BasePlayer
@@ -22,10 +24,15 @@ class GameEnv(gym.Env):
                  opponent: BasePlayer, 
                  game_type: Type[BaseGame],
                  obs_mode = Literal["flat", "image"],
+                 mm_connection_manager: Optional['ConnectionManager'] = CMInstance,
+                 debug_mode: bool = False,
                  seed: Optional[int] = None,
                  **kwargs):
         super().__init__()
+        with open(f"./tmp_{str(seed)}.txt", "a") as f:
+            f.write(f"{str(seed)}")
         self._rng = np.random.default_rng(seed=seed)
+        self.debug_mode = debug_mode
 
         self.action_space = spaces.Discrete(game_type.n_actions)
         self.obs_mode = obs_mode
@@ -40,6 +47,7 @@ class GameEnv(gym.Env):
             n_games=-1,
             mirror_games=True,
             pause_after_game=True,
+            connection_manager=mm_connection_manager,
             allow_external_simulation=False,
             seed=seed,
             **kwargs)
@@ -55,6 +63,15 @@ class GameEnv(gym.Env):
             info = self._get_info()
             info['is_success'] = False
             return self._get_obs(), 0, True, False, info
+        
+        if self.debug_mode:
+            action_masks = self.mm.current_game.action_masks()
+            action_is_invalid = not action_masks[action]
+            if action_is_invalid:
+                logging.warning(f"Action {action} is invalid in the current state. Returning dummy info.")
+                info = self._get_info()
+                info['is_success'] = False
+                return self._get_obs(), -1, True, False, info
         
         # assert(self.mm.status == self.mm.WAITING)
         move = self.mm.current_game.get_move_from_action(action)
