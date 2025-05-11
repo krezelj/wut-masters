@@ -16,11 +16,19 @@ class ExternalOthelloMove(BaseMove):
             return "null"
         position = (self.index // BOARD_SIZE, self.index % BOARD_SIZE)
         return f"{chr(position[1] + ord('a'))}{position[0] + 1}"
+    
+    @algebraic.setter
+    def algebraic(self, value):
+        pass
 
     @property
     def index(self):
         # TODO Maybe optimise this one day
         return int(self.move_data.split(',')[0])
+    
+    @index.setter
+    def index(self, value):
+        pass
 
     def __init__(self, move_data: str):
         self.move_data = move_data

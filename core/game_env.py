@@ -44,11 +44,18 @@ class GameEnv(gym.Env):
             **kwargs)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None) -> tuple[npt.NDArray, dict]:
-        self.mm.run()
+        if self.mm.status != self.mm.WAITING:
+            self.mm.run()
         return self._get_obs(), self._get_info()
 
-    def step(self, action: int) -> tuple[npt.NDArray, float, bool, bool, dict]:        
-        assert(self.mm.status == self.mm.WAITING)
+    def step(self, action: int) -> tuple[npt.NDArray, float, bool, bool, dict]:
+        # this is possible if a lot of random moves are used
+        if self.mm.status != self.mm.WAITING:
+            info = self._get_info()
+            info['is_success'] = False
+            return self._get_obs(), 0, True, False, info
+        
+        # assert(self.mm.status == self.mm.WAITING)
         move = self.mm.current_game.get_move_from_action(action)
         self.mm.respond(move)
         self.mm.run()
