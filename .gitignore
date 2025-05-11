@@ -5,6 +5,7 @@ __pycache__
 .data
 .profiler
 external/runtimes
+train
 
 *.ipynb
 *.zip

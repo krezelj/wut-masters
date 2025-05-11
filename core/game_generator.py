@@ -45,7 +45,6 @@ class GameGenerator:
         # return game_to_return
 
     def __generate_game(self) -> BaseGame:
-        game = self.game_type(**self.game_kwargs)
         if isinstance(self.n_random_moves, tuple):
             low = self.n_random_moves[0] // 2
             high = self.n_random_moves[1] // 2 + 1
@@ -53,13 +52,23 @@ class GameGenerator:
         else:
             n = self.n_random_moves
         assert(n % 2 == 0)
-        for _ in range(n):
 
-            # despite BaseGame implementing get_random_move,
-            # we use own random seed generator for consistensy
-            moves = game.get_moves()
-            move = self._rng.choice(moves)
-            game.make_move(move)
+        # for large enough n it is possible that the game might finish
+        # before returning, we need to handle this case and generate new
+        # games until a valid game state is generated
+        while True:
+            game = self.game_type(**self.game_kwargs)
+            for _ in range(n):
+
+                # despite BaseGame implementing get_random_move,
+                # we use own random seed generator for consistensy
+                moves = game.get_moves()
+                move = self._rng.choice(moves)
+                game.make_move(move)
+                if game.is_over:
+                    break
+            else: # finally, if all moves were valid, break out of the while loop
+                break
 
         # TODO add game evaluation (using MCTS?)
         return game
