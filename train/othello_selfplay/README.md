@@ -1,2 +1,0 @@
-- model_0 trained with bogo for ~100k steps
-- model_i+1 is model_i trained against frozen model_i for 250k steps
