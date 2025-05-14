@@ -198,7 +198,7 @@ class ModelController:
 
     def simulation_policy(self, node: 'MCTSPlayer.Node'):
         Q = node.value_sum / (node.visit_count + 1)
-        U = self.c * node.prior_probability * np.sqrt(node.parent.visit_count / (1 + node.visit_count))
+        U = self.c * node.prior_probability * np.sqrt(node.parent.visit_count) / (1 + node.visit_count)
         return Q + U
     
     def prior_func(self, game: BaseGame):
@@ -224,4 +224,4 @@ class ModelController:
     def value_estimator(self, game: BaseGame):
         obs = torch.tensor(game.get_obs(obs_mode=self.obs_mode)).unsqueeze(dim=0)
         v = self.critic(obs).item()
-        return v
+        return -v

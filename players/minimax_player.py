@@ -69,7 +69,7 @@ class MinimaxPlayer(BasePlayer):
             with torch.inference_mode():
                 obs = torch.tensor(game.get_obs(obs_mode=obs_mode)).unsqueeze(dim=0).to("cpu")
                 v = model.policy.predict_values(obs).item()
-            return v
+            return -v
         return model_evaluation
     
     @classmethod
