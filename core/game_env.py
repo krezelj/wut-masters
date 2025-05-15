@@ -29,8 +29,6 @@ class GameEnv(gym.Env):
                  seed: Optional[int] = None,
                  **kwargs):
         super().__init__()
-        with open(f"./tmp_{str(seed)}.txt", "a") as f:
-            f.write(f"{str(seed)}")
         self._rng = np.random.default_rng(seed=seed)
         self.debug_mode = debug_mode
 
