@@ -93,6 +93,7 @@ class ExternalOthello(BaseGame):
 
     @property
     def result(self):
+        self.__state_cache = None
         if not self.is_over:
             return None
         if self.material_diff > 0:
