@@ -40,7 +40,7 @@ class ConnectionManager:
         string_command = ""
         for k, v in command_args.items():
             if v == True:
-                string_command += f"--{k}"
+                string_command += f"--{k} "
             elif v == False:
                 continue
             else:
@@ -87,7 +87,9 @@ class ConnectionManager:
     def __add_kwargs(self, command_args: dict, **kwargs):
         for k, v in kwargs.items():
             # convert to camelCase
-            k = ''.join(map(lambda x: x.lower().capitalize(), k.split("_")))
+            words = k.split('_')
+            cap_words = map(lambda x: x.lower().capitalize(), words[1:])
+            k = words[0].lower() + ''.join(cap_words)
             command_args[k] = v
 
     def add_game(self, name: Literal["othello", "connect_four"], **kwargs) -> str:
@@ -132,7 +134,7 @@ class ConnectionManager:
             command_args['state'] = str(game)
             # since we do not know whether the player requires
             # zobrist, we must include it
-            command_args['zobrist'] = True
+            command_args['useZobrist'] = True
 
         return self.__send_command(command_args)
 
