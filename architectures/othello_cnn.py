@@ -40,7 +40,7 @@ class SimpleCNN(BaseFeaturesExtractor):
         return self.linear(self.cnn(observations))
     
 
-class MiniCNN(BaseFeaturesExtractor):
+class SmallCNN(BaseFeaturesExtractor):
     """
     Implementation based on 
     https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
@@ -50,11 +50,13 @@ class MiniCNN(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 64):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 128):
         super().__init__(observation_space, features_dim)
         n_input_channels = observation_space.shape[0]
         self.cnn = nn.Sequential(
             nn.Conv2d(n_input_channels, 32, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
             nn.Flatten(),
         )
