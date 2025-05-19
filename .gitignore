@@ -10,3 +10,4 @@ train
 *.ipynb
 *.zip
 *.onnx
+*.pth
