@@ -10,6 +10,10 @@ EXE_PATH = './external/MastersAlgorithms.exe'
 
 class ConnectionManager:
 
+    EXCEPTION_RESPONSE = "exception"
+    END_RESPONSE = "end\n"
+    EXIT_MESSAGE = "exit"
+
     def __init__(self, verbose: bool = False, **kwargs):
         self.verbose = verbose
         args = []
@@ -24,7 +28,8 @@ class ConnectionManager:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            encoding='utf-8'
         )
 
     def __del__(self):
@@ -34,9 +39,31 @@ class ConnectionManager:
     def __parse_command(self, command_args: dict) -> str:
         string_command = ""
         for k, v in command_args.items():
-            string_command += f"--{k} {v} "
+            if v == True:
+                string_command += f"--{k}"
+            elif v == False:
+                continue
+            else:
+                string_command += f"--{k} {v} "
         assert(len(string_command) > 0)
         return string_command[:-1] + '\n'
+    
+    def __handle_exception(self):
+        error_message = self.process.stdout.readline()
+        stack_trace = []
+        for line in iter(self.process.stdout.readline,""):
+            line = line.lstrip()
+            if line == self.END_RESPONSE:
+                break
+            stack_trace.append(line)
+        stack_trace = ''.join(stack_trace)
+
+        self.process.stdin.write(self.EXIT_MESSAGE)
+        self.process.stdin.flush()
+        HIGHLIGHT_START = '\033[91m\033[1m'
+        HIGHLIGHT_END = '\033[0m'
+        raise Exception(f"{HIGHLIGHT_START}The subprocess has raised an exception: {error_message}{HIGHLIGHT_END}"
+                        + f"Stack Trace:\n{stack_trace}")
 
     def __send_command(self, command_args: dict):
         if self.process.poll() is not None:
@@ -51,12 +78,16 @@ class ConnectionManager:
 
         response = self.process.stdout.readline()
         response = response[:-1] # remove \n at the end
+        if response == self.EXCEPTION_RESPONSE:
+            self.__handle_exception()
         logging.debug(f"response: {response}")
 
         return response
     
     def __add_kwargs(self, command_args: dict, **kwargs):
         for k, v in kwargs.items():
+            # convert to camelCase
+            k = ''.join(map(lambda x: x.lower().capitalize(), k.split("_")))
             command_args[k] = v
 
     def add_game(self, name: Literal["othello", "connect_four"], **kwargs) -> str:
@@ -99,7 +130,9 @@ class ConnectionManager:
         else:
             command_args['name'] = game.name
             command_args['state'] = str(game)
-            command_args['zobrist'] = "True"
+            # since we do not know whether the player requires
+            # zobrist, we must include it
+            command_args['zobrist'] = True
 
         return self.__send_command(command_args)
 
@@ -174,7 +207,7 @@ class ConnectionManager:
             "gameType": game_type,
             "players": ";".join(map(lambda p: p.hash_name, players)),
             "nGames": str(n_games),
-            "mirrorGames": str(mirror_games),
+            "mirrorGames": mirror_games,
             "nRandomMoves": str(n_random_moves)
         }
         return self.__send_command(command_args)
