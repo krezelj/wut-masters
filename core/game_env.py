@@ -97,7 +97,7 @@ class GameEnv(gym.Env):
 
     def _get_info(self) -> dict:
         return {
-            'game': self.mm.current_game
+            # 'game': self.mm.current_game
             }
 
     def render(self):
