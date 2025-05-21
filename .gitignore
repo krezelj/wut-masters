@@ -7,6 +7,8 @@ __pycache__
 external/runtimes
 train
 
+*test.py
+
 *.ipynb
 *.zip
 *.onnx
