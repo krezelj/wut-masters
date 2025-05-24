@@ -51,7 +51,7 @@ class MatchManager:
                  allow_external_simulation: bool = True,
                  game_kwargs: dict = {},
                  seed: int = 0,
-                 csv_filename: Optional[str] = ".logs/csv_tmp.csv",
+                 csv_filename: Optional[str] = None,
                  verbose: int = 0,
                  **kwargs):
         
