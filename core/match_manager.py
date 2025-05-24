@@ -1,3 +1,4 @@
+from copy import copy
 import time
 import logging
 from typing import Optional, Type, Union
@@ -54,11 +55,13 @@ class MatchManager:
                  csv_filename: Optional[str] = None,
                  verbose: int = 0,
                  **kwargs):
-        
         if connection_manager is None:
             self.connection_manager = ConnectionManager(verbose=True)
         else:
             self.connection_manager = connection_manager
+        game_kwargs = copy(game_kwargs)
+        if "connection_manager" not in game_kwargs:
+            game_kwargs['connection_manager'] = self.connection_manager
 
         if allow_external_simulation:
             assert(all(map(lambda p: hasattr(p, "hash_name"), players)))

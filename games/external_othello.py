@@ -2,7 +2,7 @@ from typing import Literal, Optional
 import numpy as np
 import numpy.typing as npt
 
-from core.connection_manager import CMInstance
+from core.connection_manager import CMInstance, ConnectionManager
 from games.base_game import BaseGame, BaseMove
 from games.utils import *
 
@@ -63,7 +63,7 @@ class ExternalOthello(BaseGame):
     @property
     def state(self):
         if self.__state_cache is None:
-            self.__state_cache = CMInstance.get_string(self)
+            self.__state_cache = self.connection_manager.get_string(self)
         return self.__state_cache
     
     @property
@@ -106,28 +106,33 @@ class ExternalOthello(BaseGame):
     def result(self, value):
         pass
 
-    def __init__(self, hash_name: Optional[str] = None, use_zobrist: bool = True):
+    def __init__(self, 
+                 hash_name: Optional[str] = None, 
+                 use_zobrist: bool = True,
+                 connection_manager: ConnectionManager = CMInstance):
+        self.connection_manager = connection_manager
+        self.use_zobrist = use_zobrist
         if hash_name is None:
-            self.hash_name = CMInstance.add_game(name='othello', use_zobrist=use_zobrist)
+            self.hash_name = self.connection_manager.add_game(name='othello', use_zobrist=use_zobrist)
         else:
             self.hash_name = hash_name
         self.__state_cache = None
         self.__moves_cache = None
 
     def close(self):
-        CMInstance.remove_game(self)
+        self.connection_manager.remove_game(self)
 
     def get_moves(self) -> list[ExternalOthelloMove]:
         if self.__moves_cache is not None:
             return self.__moves_cache
-        moves_data = CMInstance.get_moves(self).split(';')
+        moves_data = self.connection_manager.get_moves(self).split(';')
         self.__moves_cache = []
         for md in moves_data:
             self.__moves_cache.append(ExternalOthelloMove(md))
         return self.__moves_cache
 
     def get_random_move(self) -> ExternalOthelloMove:
-        move_data = CMInstance.get_random_move(self)
+        move_data = self.connection_manager.get_random_move(self)
         return ExternalOthelloMove(move_data)
 
     def get_move_from_index(self, index: int) -> ExternalOthelloMove:
@@ -137,25 +142,25 @@ class ExternalOthello(BaseGame):
         moves.sort(key=lambda m: -self.weights[m.index])
 
     def make_move(self, move: ExternalOthelloMove):
-        move_data = CMInstance.make_move(self, move)
+        move_data = self.connection_manager.make_move(self, move)
         move.move_data = move_data
         self.__state_cache = None
         self.__moves_cache = None
 
     def undo_move(self, move: ExternalOthelloMove):
-        CMInstance.undo_move(self, move)
+        self.connection_manager.undo_move(self, move)
         self.__state_cache = None
         self.__moves_cache = None
 
     def evaluate(self) -> float:
-        return float(CMInstance.evaluate(self))
+        return float(self.connection_manager.evaluate(self))
 
     def render(self, show_legal_moves: bool=True):
         raise NotImplementedError()
 
     def copy(self) -> 'ExternalOthelloMove':
-        new_hash_name = CMInstance.copy(self)
-        return ExternalOthello(new_hash_name)
+        new_hash_name = self.connection_manager.copy(self)
+        return ExternalOthello(new_hash_name, use_zobrist=self.use_zobrist, connection_manager=self.connection_manager)
     
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         board = np.zeros(shape=(2, BOARD_SIZE, BOARD_SIZE))
