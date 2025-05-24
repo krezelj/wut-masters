@@ -79,7 +79,7 @@ class GameEnv(gym.Env):
         terminated = False
         reward = 0
         info = self._get_info()
-        if self.mm.status in [self.mm.OVER, self.mm.READY]:
+        if self.is_terminated():
             if self.mm.last_winner_idx == 0:
                 reward = 1
             elif self.mm.last_winner_idx < 0:
@@ -91,6 +91,16 @@ class GameEnv(gym.Env):
 
         truncated = False
         return self._get_obs(), reward, terminated, truncated, info
+
+    def is_ready(self) -> bool:
+        if self.mm.status == self.mm.WAITING and self.mm.current_player_idx == 0:
+            return True
+        elif self.is_terminated():
+            return True
+        return False
+
+    def is_terminated(self) -> bool:
+        return self.mm.status in [self.mm.OVER, self.mm.READY]
 
     def _get_obs(self) -> npt.NDArray:
         return self.mm.current_game.get_obs(self.obs_mode)
