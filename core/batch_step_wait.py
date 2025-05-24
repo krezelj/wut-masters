@@ -8,7 +8,6 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 from core.game_env import GameEnv
 
-
 global_opponent: MaskablePPO
 
 def set_global_opponent(opponent: MaskablePPO):
@@ -36,10 +35,10 @@ def handle_opponent(envs: list[GameEnv], rollout_data: list[tuple], update_rollo
                 obs = rollout_data[env_idx][0]
             else:
                 obs = envs[env_idx]._get_obs()
-            batch_obs.append(np.expand_dims(obs, axis=0))
+            batch_obs.append(obs)
             action_masks.append(envs[env_idx].action_masks())
 
-        opponent_actions, _ = global_opponent.predict(np.concat(batch_obs), action_masks=action_masks)
+        opponent_actions, _ = global_opponent.predict(np.stack(batch_obs), action_masks=action_masks)
 
         for i, env_idx in enumerate(unready_envs_idxs):
             updated_data = envs[env_idx].step(opponent_actions[i])
