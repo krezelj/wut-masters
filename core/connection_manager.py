@@ -39,9 +39,9 @@ class ConnectionManager:
     def __parse_command(self, command_args: dict) -> str:
         string_command = ""
         for k, v in command_args.items():
-            if v == True:
+            if v is True:
                 string_command += f"--{k} "
-            elif v == False:
+            elif v is False:
                 continue
             else:
                 string_command += f"--{k} {v} "
