@@ -80,6 +80,7 @@ class MatchManager:
 
         self.current_game: Optional[BaseGame] = None
         self.results = np.zeros(shape=(game_type.n_possible_outcomes, len(players)))
+        self.times = None
         self.last_winner_idx : Optional[int] = None
         self.games_completed = 0
         self.moves_made = 0
@@ -145,7 +146,7 @@ class MatchManager:
                 return
 
     def run_external(self):
-        results = self.connection_manager.run_match(
+        response = self.connection_manager.run_match(
             game_type=self.game_type.name,
             players=self.players,
             n_games=self.n_games,
@@ -153,7 +154,9 @@ class MatchManager:
             n_random_moves=self.n_random_moves
         )
 
+        results, *times = response.split(';')
         results = results.split(',')
+        self.times = times
         iterator = 0
         for i in range(self.results.shape[0]):
             for j in range(self.results.shape[1]):
@@ -262,6 +265,13 @@ class MatchManager:
         logging.info(msg)
 
     def __log_match(self):
+        if len(self.players) == 2:
+            wins = int(self.results[0, 0] + self.results[1, 1])
+            losses = int(self.results[0, 1] + self.results[1, 0])
+            draws = int(self.results[2, 0] + self.results[2, 1])
+            logging.info(f"Result: {wins}-{draws}-{losses}")
         logging.info(self.results)
+        if self.times is not None:
+            logging.info(self.times)
 
         
