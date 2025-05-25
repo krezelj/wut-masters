@@ -63,10 +63,12 @@ class MatchManager:
         if "connection_manager" not in game_kwargs:
             game_kwargs['connection_manager'] = self.connection_manager
 
-        if allow_external_simulation:
-            assert(all(map(lambda p: hasattr(p, "hash_name"), players)))
+        can_simulate_externally = all(map(lambda p: hasattr(p, "hash_name"), players))
+        if allow_external_simulation and can_simulate_externally:
             self.simulate_externally = True
         else:
+            if allow_external_simulation:
+                logging.warning("External simulation is not possible.")
             self.simulate_externally = False
 
         self.verbose = verbose

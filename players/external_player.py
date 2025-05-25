@@ -9,7 +9,7 @@ from players.base_player import BasePlayer
 class ExternalPlayer(BasePlayer):
 
     def __init__(self, 
-                 algorithm: Literal["minimax", "mcts", "agent", "mctsBatch"],
+                 algorithm: Literal["bogo", "minimax", "mcts", "agent", "mctsBatch"],
                  log_info: bool = False,
                  **kwargs):
         
@@ -17,8 +17,7 @@ class ExternalPlayer(BasePlayer):
         self.hash_name = CMInstance.add_algorithm(algorithm, **kwargs)
 
     def __del__(self):
-        pass
-        # CMInstance.remove_algorithm(self)
+        CMInstance.remove_algorithm(self)
 
     def get_move(self, game: BaseGame) -> BaseMove:
         response = CMInstance.get_move(game, self)
