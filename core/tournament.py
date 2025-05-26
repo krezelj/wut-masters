@@ -25,12 +25,8 @@ class Tournament:
                  player_names: Optional[list[str]] = None,
                  n_games: int = 1,
                  n_random_moves: Union[int, tuple[int, int]] = 0,
-                 # pause_after_game: bool = False,
-                 # connection_manager: Optional['ConnectionManager'] = CMInstance,
-                 # allow_external_simulation: bool = True,
-                 # game_kwargs: dict = {},
+                 skip_selfplay: bool = False,
                  seed: int = 0,
-                 # csv_filename: Optional[str] = None,
                  verbose: int = 0,
                  **kwargs):
         
@@ -39,6 +35,7 @@ class Tournament:
         self.player_names = player_names
         self.n_games = n_games
         self.n_random_moves = n_random_moves
+        self.skip_selfplay = skip_selfplay
         self.seed = seed
         self.verbose = verbose
         self.mm_verbose = kwargs.get("mm_verbose", 0)
@@ -50,6 +47,10 @@ class Tournament:
         indices = list(range(len(self.players)))
         idx_pairs =  list(itertools.product(indices, repeat=2))
         for idx_pair in idx_pairs:
+            if self.skip_selfplay and idx_pair[0] == idx_pair[1]:
+                continue
+            if idx_pair[0] > idx_pair[1]:
+                continue
             if self.verbose >= self.__BASE_MATCH_LL:
                 logging.info(
                     f"Running match between {self.__get_player_name(idx_pair[0])} and {self.__get_player_name(idx_pair[1])}")
