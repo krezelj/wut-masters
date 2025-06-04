@@ -19,7 +19,7 @@ def setup(
             fmt='[%(asctime)-8s][%(levelname)-8s] %(name)s:%(message)s',
             datefmt='%H:%M:%S',
         )
-        file_handler = logging.FileHandler(filename, mode='w')
+        file_handler = logging.FileHandler(filename, mode='w', encoding='utf-8')
         file_handler.setLevel(level)
         file_handler.setFormatter(file_formatter)
 
