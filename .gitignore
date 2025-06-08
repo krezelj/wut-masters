@@ -5,7 +5,10 @@ __pycache__
 .data
 .profiler
 external/runtimes
+external/data
 train
+
+external/wEdax-x86-64-v3.exe
 
 *test.py
 
