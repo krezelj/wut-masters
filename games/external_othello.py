@@ -3,12 +3,12 @@ import numpy as np
 import numpy.typing as npt
 
 from core.connection_manager import CMInstance, ConnectionManager
-from games.base_game import BaseGame, BaseMove
+from games.base_external_game import BaseExternalGame, BaseExternalMove
 from games.utils import *
 
 BOARD_SIZE = 8
 
-class ExternalOthelloMove(BaseMove):
+class ExternalOthelloMove(BaseExternalMove):
 
     null_move_idx = 64
 
@@ -42,7 +42,7 @@ class ExternalOthelloMove(BaseMove):
     def __str__(self):
         return self.move_data
 
-class ExternalOthello(BaseGame):
+class ExternalOthello(BaseExternalGame):
 
     weights = np.array([
             [100, -20, 10, 5, 5, 10, -20, 100],
@@ -55,6 +55,7 @@ class ExternalOthello(BaseGame):
             [100, -20, 10, 5, 5, 10, -20, 100],
     ]).flatten()
 
+    move_type = ExternalOthelloMove
     name = 'othello'
     n_possible_outcomes = 3
     n_actions = BOARD_SIZE * BOARD_SIZE + 1 # TODO GameEnv should handle this 
@@ -62,9 +63,9 @@ class ExternalOthello(BaseGame):
 
     @property
     def state(self):
-        if self.__state_cache is None:
-            self.__state_cache = self.connection_manager.get_string(self)
-        return self.__state_cache
+        if self._state_cache is None:
+            self._state_cache = self.connection_manager.get_string(self)
+        return self._state_cache
     
     @property
     def null_moves(self):
@@ -93,7 +94,7 @@ class ExternalOthello(BaseGame):
 
     @property
     def result(self):
-        self.__state_cache = None
+        self._state_cache = None
         if not self.is_over:
             return None
         if self.material_diff > 0:
@@ -110,50 +111,10 @@ class ExternalOthello(BaseGame):
                  hash_name: Optional[str] = None, 
                  use_zobrist: bool = True,
                  connection_manager: ConnectionManager = CMInstance):
-        self.connection_manager = connection_manager
-        self.use_zobrist = use_zobrist
-        if hash_name is None:
-            self.hash_name = self.connection_manager.add_game(name='othello', use_zobrist=use_zobrist)
-        else:
-            self.hash_name = hash_name
-        self.__state_cache = None
-        self.__moves_cache = None
+        super().__init__(hash_name, use_zobrist, connection_manager)
 
-    def close(self):
-        self.connection_manager.remove_game(self)
-
-    def get_moves(self) -> list[ExternalOthelloMove]:
-        if self.__moves_cache is not None:
-            return self.__moves_cache
-        moves_data = self.connection_manager.get_moves(self).split(';')
-        self.__moves_cache = []
-        for md in moves_data:
-            self.__moves_cache.append(ExternalOthelloMove(md))
-        return self.__moves_cache
-
-    def get_random_move(self) -> ExternalOthelloMove:
-        move_data = self.connection_manager.get_random_move(self)
-        return ExternalOthelloMove(move_data)
-
-    def get_move_from_index(self, index: int) -> ExternalOthelloMove:
-        raise NotImplementedError()
-
-    def sort_moves(self, moves: list[BaseMove]):
+    def sort_moves(self, moves: list[ExternalOthelloMove]):
         moves.sort(key=lambda m: -self.weights[m.index])
-
-    def make_move(self, move: ExternalOthelloMove):
-        move_data = self.connection_manager.make_move(self, move)
-        move.move_data = move_data
-        self.__state_cache = None
-        self.__moves_cache = None
-
-    def undo_move(self, move: ExternalOthelloMove):
-        self.connection_manager.undo_move(self, move)
-        self.__state_cache = None
-        self.__moves_cache = None
-
-    def evaluate(self) -> float:
-        return float(self.connection_manager.evaluate(self))
 
     def render(self, show_legal_moves: bool=True):
         raise NotImplementedError()
@@ -182,29 +143,13 @@ class ExternalOthello(BaseGame):
         if obs_mode == "image":
             return obs.astype(np.uint8) * 255
     
-    def action_masks(self, with_moves: bool = False) -> list[bool]:
-        mask = [False] * self.n_actions
-        moves = self.get_moves()
-        for move in moves:
-            mask[move.index] = True
-        mask[-1] = not np.any(mask[:-1])
-        if with_moves:
-            return mask, moves
-        return mask
-
-    def get_move_from_action(self, action: int) -> BaseMove:
+    def get_move_from_action(self, action: int) -> ExternalOthelloMove:
         if action == self.n_actions - 1:
             return ExternalOthelloMove.get_null_move(self)        
         return ExternalOthelloMove(f"{action},{self.null_moves},0")
 
-    def get_move_from_user_input(self, user_input: str) -> BaseMove:
+    def get_move_from_user_input(self, user_input: str) -> ExternalOthelloMove:
         raise NotImplementedError()
-
-    def get_move_from_move_data(self, move_data: str) -> BaseMove:
-        return ExternalOthelloMove(move_data)
-
-    def __str__(self) -> str:
-        return self.state
 
 if __name__ == '__main__':
     pass

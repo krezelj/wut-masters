@@ -4,7 +4,6 @@ import numpy.typing as npt
 
 from core.connection_manager import CMInstance, ConnectionManager
 from games.base_external_game import BaseExternalGame, BaseExternalMove
-from games.base_game import BaseMove
 from games.utils import *
 
 WIDTH = 7
@@ -73,7 +72,7 @@ class ExternalConnectFour(BaseExternalGame):
                  connection_manager: ConnectionManager = CMInstance):
         super().__init__(hash_name, use_zobrist, connection_manager)
 
-    def sort_moves(self, moves: list[BaseMove]):
+    def sort_moves(self, moves: list[ExternalConnectFourMove]):
         pass # no sorting for this game, sorry!
 
     def render(self, show_legal_moves: bool=True):
@@ -103,10 +102,10 @@ class ExternalConnectFour(BaseExternalGame):
         if obs_mode == "image":
             return obs.astype(np.uint8) * 255
 
-    def get_move_from_action(self, action: int) -> BaseMove:
+    def get_move_from_action(self, action: int) -> ExternalConnectFourMove:
         return ExternalConnectFourMove(str(action))
 
-    def get_move_from_user_input(self, user_input: str) -> BaseMove:
+    def get_move_from_user_input(self, user_input: str) -> ExternalConnectFourMove:
         raise NotImplementedError()
 
 if __name__ == '__main__':
