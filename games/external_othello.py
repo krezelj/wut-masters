@@ -158,7 +158,7 @@ class ExternalOthello(BaseGame):
     def render(self, show_legal_moves: bool=True):
         raise NotImplementedError()
 
-    def copy(self) -> 'ExternalOthelloMove':
+    def copy(self) -> 'ExternalOthello':
         new_hash_name = self.connection_manager.copy(self)
         return ExternalOthello(new_hash_name, use_zobrist=self.use_zobrist, connection_manager=self.connection_manager)
     
@@ -183,7 +183,7 @@ class ExternalOthello(BaseGame):
             return obs.astype(np.uint8) * 255
     
     def action_masks(self, with_moves: bool = False) -> list[bool]:
-        mask = [False] * (BOARD_SIZE ** 2 + 1)
+        mask = [False] * self.n_actions
         moves = self.get_moves()
         for move in moves:
             mask[move.index] = True

@@ -84,18 +84,21 @@ class ConnectionManager:
 
         return response
     
+    def __to_camel_case(self, words: str):
+        words = words.split('_')
+        cap_words = map(lambda x: x.lower().capitalize(), words[1:])
+        return words[0].lower() + ''.join(cap_words)
+
     def __add_kwargs(self, command_args: dict, **kwargs):
         for k, v in kwargs.items():
             # convert to camelCase
-            words = k.split('_')
-            cap_words = map(lambda x: x.lower().capitalize(), words[1:])
-            k = words[0].lower() + ''.join(cap_words)
+            k = self.__to_camel_case(k)
             command_args[k] = v
 
-    def add_game(self, name: Literal["othello", "connect_four"], **kwargs) -> str:
+    def add_game(self, name: str, **kwargs) -> str:
         command_args = {
             'command': 'addGame',
-            'name': name,
+            'name': self.__to_camel_case(name),
         }
         self.__add_kwargs(command_args, **kwargs)
         return self.__send_command(command_args)
@@ -167,6 +170,20 @@ class ConnectionManager:
             'move': str(move)
         }
         return self.__send_command(command_args)
+    
+    def is_over(self, game: BaseGame) -> str:
+        command_args = {
+            'command': 'isOver',
+            'game': game.hash_name
+        }
+        return self.__send_command(command_args)
+    
+    def result(self, game: BaseGame) -> str:
+        command_args = {
+            'command': 'result',
+            'game': game.hash_name
+        }
+        return self.__send_command(command_args)
 
     def evaluate(self, game: BaseGame) -> str:
         command_args = {
@@ -199,14 +216,14 @@ class ConnectionManager:
         return self.__send_command(command_args)
     
     def run_match(self, 
-                  game_type: Literal["othello", "connect_four"],
+                  game_type: str,
                   players: list[BasePlayer],
                   n_games: int,
                   mirror_games: bool,
                   n_random_moves: int):
         command_args = {
             "command": "runMatch",
-            "gameType": game_type,
+            "gameType": self.__to_camel_case(game_type),
             "players": ";".join(map(lambda p: p.hash_name, players)),
             "nGames": str(n_games),
             "mirrorGames": mirror_games,
