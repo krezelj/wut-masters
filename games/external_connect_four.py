@@ -84,7 +84,7 @@ class ExternalConnectFour(BaseExternalGame):
     
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         board = np.zeros(shape=(2, HEIGHT, WIDTH))
-        state= self.state
+        state = self.state
         for i in range(HEIGHT):
             for j in range(WIDTH):
                 char = state[i * WIDTH + j]
@@ -106,7 +106,7 @@ class ExternalConnectFour(BaseExternalGame):
         return ExternalConnectFourMove(str(action))
 
     def get_move_from_user_input(self, user_input: str) -> ExternalConnectFourMove:
-        raise NotImplementedError()
+        return ExternalConnectFourMove(user_input)
 
 if __name__ == '__main__':
     pass
