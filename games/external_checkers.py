@@ -6,7 +6,11 @@ from core.connection_manager import CMInstance, ConnectionManager
 from games.base_external_game import BaseExternalGame, BaseExternalMove
 from games.utils import *
 
-BOARD_SIZE = 8
+BLACK = 0
+WHITE = 1
+# BOARD_SIZE = 8
+OBS_HEIGHT = 8
+OBS_WIDTH = 4
 
 class ExternalCheckersMove(BaseExternalMove):
 
@@ -31,7 +35,7 @@ class ExternalCheckers(BaseExternalGame):
     name = 'checkers'
     n_possible_outcomes = 3
     n_actions = 129
-    obs_shape = (3, BOARD_SIZE, BOARD_SIZE)
+    obs_shape = (3, OBS_HEIGHT, OBS_WIDTH)
 
     @property
     def state(self):
@@ -84,11 +88,11 @@ class ExternalCheckers(BaseExternalGame):
     
     def get_obs(self, obs_mode: Literal["flat", "image"]) -> npt.NDArray:
         # raise NotImplementedError()
-        board = np.zeros(shape=(3, BOARD_SIZE, BOARD_SIZE))
+        board = np.zeros(shape=(3, OBS_HEIGHT, OBS_WIDTH))
         state = self.state
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
-                char = state[i * BOARD_SIZE + j]
+        for i in range(OBS_HEIGHT):
+            for j in range(OBS_WIDTH):
+                char = state[i * OBS_WIDTH + j]
                 if char == 'x' or char == 'X':
                     board[0, i, j] = 1
                 elif char == 'o' or char == 'O':
@@ -99,6 +103,12 @@ class ExternalCheckers(BaseExternalGame):
         player_board = board[self.player_idx, :, :]
         opponent_board = board[1 - self.player_idx, :, :]
         kings = board[2, :, :]
+
+        if self.player_idx == WHITE:
+            player_board = player_board.flatten()[::-1].reshape(OBS_HEIGHT, OBS_WIDTH)
+            opponent_board = opponent_board.flatten()[::-1].reshape(OBS_HEIGHT, OBS_WIDTH)
+            kings = kings.flatten()[::-1].reshape(OBS_HEIGHT, OBS_WIDTH)
+
         obs = np.stack([player_board, opponent_board, kings])
         if obs_mode == "flat":
             return obs.flatten().astype(np.float32)
