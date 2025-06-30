@@ -40,7 +40,7 @@ class BaseExternalGame(BaseGame):
     def close(self):
         self.connection_manager.remove_game(self)
 
-    def get_moves(self) -> list[Any]:
+    def get_moves(self) -> list[BaseExternalMove]:
         if self._moves_cache is not None:
             return self._moves_cache
         moves_data = self.connection_manager.get_moves(self).split(';')

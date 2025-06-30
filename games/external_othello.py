@@ -117,7 +117,26 @@ class ExternalOthello(BaseExternalGame):
         moves.sort(key=lambda m: -self.weights[m.index])
 
     def render(self, show_legal_moves: bool=True):
-        raise NotImplementedError()
+        if show_legal_moves:
+            moves = [move.index for move in self.get_moves()]
+
+        top_row = f"  {'  '.join([chr(ord('a') + i) for i in range(BOARD_SIZE)])} "
+        print(top_row)
+        for i in range(BOARD_SIZE):
+            print(f"{i+1} ", end="")
+            for j in range(BOARD_SIZE):
+                char = self.state[i * BOARD_SIZE + j]
+                if char == 'X':
+                    print('X  ', end="")
+                    continue
+                elif char == 'O':
+                    print('O  ', end="")
+                    continue
+                elif show_legal_moves and i * BOARD_SIZE + j in moves:
+                    print('.  ', end="")
+                    continue
+                print('   ', end="")
+            print("")
 
     def copy(self) -> 'ExternalOthello':
         new_hash_name = self.connection_manager.copy(self)
