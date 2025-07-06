@@ -39,7 +39,6 @@ class SimpleCNN(BaseFeaturesExtractor):
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
         return self.linear(self.cnn(observations))
     
-
 class SmallCNN(BaseFeaturesExtractor):
     """
     Implementation based on 
@@ -72,7 +71,6 @@ class SmallCNN(BaseFeaturesExtractor):
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
         return self.linear(self.cnn(observations))
     
-
 class SmallSkipCNN(BaseFeaturesExtractor):
     """
     Implementation based on 
@@ -106,3 +104,4 @@ class SmallSkipCNN(BaseFeaturesExtractor):
         features = self.linear(self.cnn(observations))
         observations_flat = torch.flatten(observations, start_dim=1)
         return torch.cat([features, observations_flat], dim=1)
+    
