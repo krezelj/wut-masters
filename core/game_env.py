@@ -23,7 +23,7 @@ class GameEnv(gym.Env):
     def __init__(self, 
                  opponent: BasePlayer, 
                  game_type: Type[BaseGame],
-                 obs_mode = Literal["flat", "image"],
+                 obs_mode: Literal["flat", "image"],
                  mm_connection_manager: Optional['ConnectionManager'] = CMInstance,
                  debug_mode: bool = False,
                  seed: Optional[int] = None,
