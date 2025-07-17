@@ -1,6 +1,7 @@
 __pycache__
 .venv
 .logs
+.results
 .models
 .data
 .profiler
