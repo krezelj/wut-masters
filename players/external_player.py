@@ -9,7 +9,7 @@ from players.base_player import BasePlayer
 class ExternalPlayer(BasePlayer):
 
     def __init__(self, 
-                 algorithm: Literal["bogo", "minimax", "mcts", "agent", "mctsBatch", "edax"],
+                 algorithm: Literal["bogo", "minimax", "mcts", "agent", "mctsBatch", "minimaxHybrid", "edax"],
                  log_info: bool = False,
                  **kwargs):
         
