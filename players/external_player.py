@@ -25,6 +25,6 @@ class ExternalPlayer(BasePlayer):
         move = game.get_move_from_move_data(move_data)
         
         if self.log_info:
-            logging.info(debug_msg)
+            logging.info(self.hash_name + " | " + debug_msg)
 
         return move

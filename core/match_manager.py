@@ -166,6 +166,7 @@ class MatchManager:
                 iterator += 1
         
         self.__finish_match()
+        return self.results, self.times
 
     def respond(self, move: BaseMove):
         self.response_move = move

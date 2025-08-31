@@ -20,7 +20,8 @@ def evaluate(
         n_random_moves,
         min_model_id,
         max_model_id,
-        model_step = 1):
+        model_step = 1,
+        override_model_name = None):
 
     N_MODELS = (max_model_id - min_model_id) // model_step + 1
 
@@ -31,7 +32,12 @@ def evaluate(
         start = time.time()
 
         # model = MaskablePPO.load(f'./train/othello_selfplay_mlp_mini/.models/model_{model_id}.zip', device="cpu")
-        model = MaskablePPO.load(f'{directory}/model_{model_id}.zip', device="cpu")
+        if override_model_name is None:
+            model_path = f'{directory}/model_{model_id}.zip'
+        else:
+            model_path = f'{directory}/{override_model_name}'
+            model_path += ".zip" if not model_path.endswith('.zip') else ""
+        model = MaskablePPO.load(model_path, device="cpu")
 
         export(model, obs_shape=obs_shape, separate=not unified, unified=unified)
         load_time = time.time()
@@ -61,9 +67,11 @@ def evaluate(
         results[i, :, :] = mm.results
         print(f"done ({(load_time - start):.2f}/{(time.time() - load_time):.2f}s)")
 
-    np.save(os.path.join(".results", result_directory, f"{result_name}_results.npy"), results)
-    with open(os.path.join(".results", result_directory, f"{result_name}_results.txt"), "w") as f:
-        wins = results[:, 0, 0] + results[:, 1, 1]
-        losses = results[:, 1, 0] + results[:, 0, 1]
-        for model_id in range(len(wins)):
-            f.write(f"{int(wins[model_id])};{int(losses[model_id])}\n")
+    if result_name is not None and result_directory is not None:
+        np.save(os.path.join(".results", result_directory, f"{result_name}_results.npy"), results)
+        with open(os.path.join(".results", result_directory, f"{result_name}_results.txt"), "w") as f:
+            wins = results[:, 0, 0] + results[:, 1, 1]
+            losses = results[:, 1, 0] + results[:, 0, 1]
+            for model_id in range(len(wins)):
+                f.write(f"{int(wins[model_id])};{int(losses[model_id])}\n")
+    return results

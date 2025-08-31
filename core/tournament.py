@@ -25,6 +25,8 @@ class Tournament:
                  player_names: Optional[list[str]] = None,
                  n_games: int = 1,
                  n_random_moves: Union[int, tuple[int, int]] = 0,
+                 count_draws_as_half_wins: bool = False,
+                 include_both_sides: bool = False,
                  skip_selfplay: bool = False,
                  seed: int = 0,
                  verbose: int = 0,
@@ -35,6 +37,8 @@ class Tournament:
         self.player_names = player_names
         self.n_games = n_games
         self.n_random_moves = n_random_moves
+        self.count_draws_as_half_wins = count_draws_as_half_wins
+        self.include_both_sides = include_both_sides
         self.skip_selfplay = skip_selfplay
         self.seed = seed
         self.verbose = verbose
@@ -84,6 +88,15 @@ class Tournament:
         i, j = idx_pair
         self.win_matrix[i, j] = results[0, 0]
         self.win_matrix[j, i] = results[0, 1]
+        if self.include_both_sides:
+            self.win_matrix[i, j] += results[1, 1]
+            self.win_matrix[j, j] += results[1, 0]
+
+        if self.count_draws_as_half_wins:
+            draws = results[2, :].sum()
+            self.win_matrix[i, j] += draws / 2
+            self.win_matrix[j, j] += draws / 2
+
         self.times[i] += float(times[0].replace(',', '.'))
         self.times[j] += float(times[1].replace(',', '.'))
 
